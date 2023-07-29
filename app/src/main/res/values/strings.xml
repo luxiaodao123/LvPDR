@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">LvPDR</string>
+    <string name="title_home">主界面</string>
+    <string name="title_chart">图表</string>
+    <string name="title_map">地图</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoiNnhkIiwiYSI6ImNsanpmanl5dzA1NW4zY3FtaWh5ZnozbTAifQ.OAkuuaMbFrFt-7NNF0gmcg</string>
+</resources>
