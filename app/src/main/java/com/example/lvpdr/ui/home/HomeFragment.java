@@ -46,8 +46,11 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     Sensor mRotationVector;
 
     private long lastUpdate = 0;
+
+    private long lastUpdate_coord = 0;
     private long lastUpdate_gyro = 0;
     private long lastUpdate_maget = 0;
+    private long lastUpdate_step = 0;
     private int stepCount = 0;
     private double stepLength = 0;
 
@@ -70,12 +73,19 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     float [] mOrientationAngles = new float[3];
     float [] mRotationMatrixFromVector = new float[16];
     ArrayList<float[]> accelerationData = new ArrayList<float[]>();
-    private  ArrayList<Point> coords = new ArrayList<Point>();
+    private  ArrayList<Point> originalCoords = new ArrayList<Point>();
+    private  ArrayList<Point> fusionCoords = new ArrayList<Point>();
+    double sumSinAngles = 0;
+    double sumCosAngles = 0;
 
+    Point currentCoord;
 
     static final float ALPHA = 0.25f;
 
     public int i = 0;
+
+    private float coordCoefficient = 0.3f;
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -138,20 +148,27 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                             // This code will always run on the UI thread, therefore is safe to modify UI elements.
                             locationTrack = LocationTrack.getInstance();
                             if (locationTrack.canGetLocation()) {
-                                double longitude = locationTrack.getLongitude();
-                                double latitude = locationTrack.getLatitude();
+                                double longitude = locationTrack.getLocation().getLongitude();
+                                double latitude = locationTrack.getLocation().getLatitude();
 
-                                String sLon = String.format("%.2f", longitude);
+                                String sLon = String.format("%.5f", longitude);
                                 TextView text = (TextView) getView().findViewById(R.id.gpsx);
                                 text.setText(sLon);
 
 
-                                String sLat = String.format("%.2f", latitude);
+                                String sLat = String.format("%.5f", latitude);
                                 text = (TextView) getView().findViewById(R.id.gpsy);
                                 text.setText(sLat);
 
-                                coords.add(Point.fromLngLat(latitude, longitude));
-                                mapViewModel.addPointInMapSource("original-location", coords);
+                                originalCoords.add(Point.fromLngLat(longitude, latitude));
+                                if(currentCoord == null){
+                                    currentCoord = Point.fromLngLat(longitude, latitude);
+                                }
+                                currentCoord = coreAlgorithm.fusionLocation(currentCoord, Point.fromLngLat(longitude, latitude), coordCoefficient);
+                                fusionCoords.add(currentCoord);
+                                mapViewModel.addPointInMapSource("original-location", originalCoords);
+                                mapViewModel.addPointInMapSource("fusion-location", fusionCoords);
+
                             } else {
                                 locationTrack.showSettingsAlert();
                             }
@@ -207,13 +224,29 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                     Math.pow(lastAccelerometer[1], 2) +
                     Math.pow(lastAccelerometer[2], 2)
             );
-            chartFragment.onUdata((float) accData);
             if((accData < 11 && accData > 9.1) || accData > 13) return;
+            chartFragment.onUdata((float) accData);
             double newStepLength = coreAlgorithm.calculateStepLength(lastAccelerometer);
+            if(currentTime - lastUpdate_step > 3000){
+                coordCoefficient = 1.0f;
+            }else
+                coordCoefficient = 0.3f;
+            if(newStepLength > 0.1){
+                if(lastUpdate_step == 0 || currentTime - lastUpdate_step > 400) {
+                    stepCount += 1;
+                    lastUpdate_step = currentTime;
+                } else
+                    return;
+            }
             stepLength += newStepLength;
-            if(newStepLength > 0.1)
-                stepCount += 1;
-            accelerationData.clear();
+            if(currentCoord != null){
+                Point coord3857 = coreAlgorithm.EPSG4326To3857(currentCoord);
+                double currentLon =  sumCosAngles * newStepLength + coord3857.longitude();
+                double currentLat =  sumSinAngles * newStepLength + coord3857.latitude();
+                currentCoord = coreAlgorithm.EPSG3857To4326(Point.fromLngLat(currentLon, currentLat));
+                sumCosAngles = 0;
+                sumSinAngles = 0;
+            }
             TextView text = (TextView) getView().findViewById(R.id.stepLength);
             text.setText(String.format("%.2f", stepLength));
 
@@ -227,7 +260,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
             float mz = sensorEvent.values[2];
 
             long currentTime = System.currentTimeMillis();
-            if ((currentTime - lastUpdate_maget > 300)) {
+            if ((currentTime - lastUpdate_maget > 0)) {
 
                 lastUpdate_maget = currentTime;
 
@@ -259,6 +292,8 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                 mSensorManager.getRotationMatrix(mRotationMatrix, null, lastAccelerometer, lastMagnetometer);
                 mSensorManager.getOrientation(mRotationMatrix, mOrientationAngles);
                 float azimuthInRadians = mOrientationAngles[0];
+                sumCosAngles += Math.cos(mOrientationAngles[0]);
+                sumSinAngles += Math.sin(mOrientationAngles[0]);
 
                 int azimuthInDegress = ((int)(azimuthInRadians * 180/(float) Math.PI) + 360) % 360;
 //                System.out.println(azimuthInDegress);

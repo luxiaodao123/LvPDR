@@ -54,7 +54,7 @@ public class LocationTrack extends Service implements LocationListener {
         return singleton;
     }
 
-    private Location getLocation() {
+    public Location getLocation() {
 
         try {
             locationManager = (LocationManager) mContext

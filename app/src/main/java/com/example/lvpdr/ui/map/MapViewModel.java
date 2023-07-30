@@ -81,7 +81,7 @@ public class MapViewModel extends ViewModel {
     private void _initMap() {
 
         singleton.mapboxMap.setCameraPosition(new CameraPosition.Builder()
-                .target(new LatLng(31, 119))
+                .target(new LatLng(31.84944, 119.9701341))
                 .zoom(8.0)
                 .build());
         singleton.mapboxMap.getUiSettings().setZoomGesturesEnabled(true);
@@ -117,10 +117,10 @@ public class MapViewModel extends ViewModel {
 
         singleton.mapboxMap.getStyle().addLayer(fusionLayer);
         singleton.mapboxMap.getStyle().addLayer(originalLayer);
-        //        GeoJsonSource source  = singleton.mapboxMap.getStyle().getSourceAs("source-id");
+//        GeoJsonSource source  = singleton.mapboxMap.getStyle().getSourceAs("original-location");
 //        List routeCoordinates = new ArrayList<Point>();
-//        routeCoordinates.add(Point.fromLngLat(119, 33.397676));
-//        routeCoordinates.add(Point.fromLngLat(119, 33.371142));
+//        routeCoordinates.add(Point.fromLngLat(119.9701341, 31.84944));
+//        routeCoordinates.add(Point.fromLngLat(119.9701341, 31.84944));
 //        Feature multiPointFeature = Feature.fromGeometry(MultiPoint.fromLngLats(routeCoordinates));
 //        FeatureCollection featureCollectionFromSingleFeature = FeatureCollection.fromFeature(multiPointFeature);
 //        source.setGeoJson(featureCollectionFromSingleFeature);

@@ -23,7 +23,7 @@ public class CoreAlgorithm {
     private CRSFactory crsFactory = new CRSFactory();
     private CoordinateTransformFactory ctFactory = new CoordinateTransformFactory();
     final  private  CoordinateReferenceSystem epsg4326 = crsFactory.createFromName("epsg:4326");
-    final  private CoordinateReferenceSystem epsg32650 = crsFactory.createFromName("epsg:32650");
+    final  private CoordinateReferenceSystem epsg3857 = crsFactory.createFromName("epsg:3857");
     private double sampleRate;
     private double height;
     private double K;  //Coefficient (may need to be adjusted for different individuals)
@@ -399,7 +399,7 @@ public class CoreAlgorithm {
             x = (A * x)
             P = (A * P * AT) + Q       ← AT is the matrix transpose of A
         */
-            Matrix x = new Matrix(new double[][]{{coord.longitude(), coord.latitude(), 0, 0}});
+            Matrix x = new Matrix(new double[][]{{coord.longitude()}, {coord.latitude()}, {0}, {0}});
             long time = (stamp == 0 ? 1 : newStamp - stamp);
             final Matrix A = new Matrix(new double[][]{
                     {1, 0, time, 0},
@@ -410,7 +410,7 @@ public class CoreAlgorithm {
 
             x = A.times(x);
             P = A.times(P).times(A.transpose()).plus(Matrix_Q);
-            return Point.fromLngLat(x.data[0][0], x.data[0][1]);
+            return Point.fromLngLat(x.data[0][0], x.data[1][0]);
 
         }
 
@@ -433,12 +433,12 @@ public class CoreAlgorithm {
             x = x.plus(K.times(y));
             P = P.times(P.identity(4).minus(K.times(Matrix_H)));
 
-            double speed = Math.sqrt(x.data[0][2] * x.data[0][2] + x.data[0][3] * x.data[0][3]);
+            double speed = Math.sqrt(x.data[2][0] * x.data[2][0] + x.data[3][0] * x.data[3][0]);
             if (speed >= 3) {
-                x.data[0][2] = 3 * x.data[0][2] / speed;
-                x.data[0][3] = 3 * x.data[0][3] / speed;
+                x.data[2][0] = 3 * x.data[2][0] / speed;
+                x.data[3][0] = 3 * x.data[3][0] / speed;
             }
-            return Point.fromLngLat(x.data[0][0], x.data[0][1]);
+            return Point.fromLngLat(x.data[0][0], x.data[1][0]);
         }
     }
 
@@ -503,7 +503,7 @@ public class CoreAlgorithm {
             //先波谷再波峰
             accelerationData = new ArrayList(accelerationData.subList(valleys[1], accelerationData.size()));
         }
-        return -0.19 * diff + Math.sqrt(Math.sqrt(diff));
+        return -0.19 * diff + 0.94 * Math.sqrt(Math.sqrt(diff));
     }
 
 //    private int[] peaks(double[] data){
@@ -643,24 +643,24 @@ public class CoreAlgorithm {
         Point fusionPoint = Point.fromLngLat(pdr.longitude() * K + gnss.longitude() * (1 - K),
                 pdr.latitude() * K + gnss.latitude() * (1 - K));
 
-        fusionPoint = EPSG4326To32650(fusionPoint);
-        Kalmanfilter kalmanfilter = new Kalmanfilter();
-        kalmanfilter.pred(System.currentTimeMillis() / 1000, fusionPoint);
-        kalmanfilter.corr(System.currentTimeMillis() / 1000, fusionPoint);
-        fusionPoint = EPSG32650To4326(fusionPoint);
+//        fusionPoint = EPSG4326To32650(fusionPoint);
+//        Kalmanfilter kalmanfilter = new Kalmanfilter();
+//        kalmanfilter.pred(System.currentTimeMillis() / 1000, fusionPoint);
+//        kalmanfilter.corr(System.currentTimeMillis() / 1000, fusionPoint);
+//        fusionPoint = EPSG32650To4326(fusionPoint);
 
         return fusionPoint;
     }
 
-    private Point EPSG4326To32650(Point point){
-        CoordinateTransform _4326To32650 = ctFactory.createTransform(epsg4326, epsg32650);
+    public Point EPSG4326To3857(Point point){
+        CoordinateTransform _4326To32650 = ctFactory.createTransform(epsg4326, epsg3857);
         ProjCoordinate result = new ProjCoordinate();
         _4326To32650.transform(new ProjCoordinate(point.longitude(), point.latitude()), result);
         return Point.fromLngLat(result.x, result.y);
     }
 
-    private Point EPSG32650To4326(Point point){
-        CoordinateTransform _32650To4326 = ctFactory.createTransform(epsg32650, epsg4326);
+    public Point EPSG3857To4326(Point point){
+        CoordinateTransform _32650To4326 = ctFactory.createTransform(epsg3857, epsg4326);
         ProjCoordinate result = new ProjCoordinate();
         _32650To4326.transform(new ProjCoordinate(point.longitude(), point.latitude()), result);
         return Point.fromLngLat(result.x, result.y);
