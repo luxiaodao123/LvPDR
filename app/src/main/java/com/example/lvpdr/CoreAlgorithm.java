@@ -395,10 +395,10 @@ public class CoreAlgorithm {
 
         public Point pred(long newStamp, Point coord) {
             // Prediction Step:
-        /*
-            x = (A * x)
-            P = (A * P * AT) + Q       ← AT is the matrix transpose of A
-        */
+            /*
+                x = (A * x)
+                P = (A * P * AT) + Q       ← AT is the matrix transpose of A
+            */
             Matrix x = new Matrix(new double[][]{{coord.longitude()}, {coord.latitude()}, {0}, {0}});
             long time = (stamp == 0 ? 1 : newStamp - stamp);
             final Matrix A = new Matrix(new double[][]{
@@ -418,15 +418,14 @@ public class CoreAlgorithm {
             Matrix x = new Matrix(new double[][]{{coord.longitude(), coord.latitude(), 0, 0}});
             Matrix m = new Matrix(new double[][]{{coord.longitude(), coord.latitude(), 0, 0}});
             long time = (stamp == 0 ? 1 : newStamp - stamp);
-
-        /*
-            Correction Step:
-            S = (H * P * HT) + R       ← HT is the matrix transpose of H
-            K = P * HT * S-1       ← S-1 is the matrix inverse of S
-            y = m - (H * x)
-            x = x + (K * y)
-            P = (I - (K * H)) * P       ← I is the Identity matrix
-        */
+            /*
+                Correction Step:
+                S = (H * P * HT) + R       ← HT is the matrix transpose of H
+                K = P * HT * S-1       ← S-1 is the matrix inverse of S
+                y = m - (H * x)
+                x = x + (K * y)
+                P = (I - (K * H)) * P       ← I is the Identity matrix
+            */
             Matrix S = Matrix_H.times(P).times(Matrix_H.transpose()).plus(Matrix_R);
             Matrix K = P.times(Matrix_H.transpose()).times(S.inverse());
             Matrix y = m.minus(Matrix_H.times(x));

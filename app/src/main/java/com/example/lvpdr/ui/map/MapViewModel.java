@@ -60,7 +60,7 @@ public class MapViewModel extends ViewModel {
             @Override
             public void onMapReady(MapboxMap mapboxMap) {
                 singleton.mapboxMap = mapboxMap;
-                mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
+                mapboxMap.setStyle("https://www.spidersens.cn/mapstyle/basic.json", new Style.OnStyleLoaded() {
                     @Override
                     public void onStyleLoaded(@NonNull Style style) {
                         style.addSource(

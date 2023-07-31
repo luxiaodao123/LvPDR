@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -26,8 +27,6 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.lvpdr.CoreAlgorithm;
 import com.example.lvpdr.R;
 import com.example.lvpdr.core.LocationTrack;
-import com.example.lvpdr.databinding.FragmentHomeBinding;
-import com.example.lvpdr.databinding.FragmentMapBinding;
 import com.example.lvpdr.ui.chart.ChartFragment;
 import com.example.lvpdr.ui.map.MapViewModel;
 import com.mapbox.geojson.Point;
@@ -117,6 +116,25 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                     stopLocation();
                 }
             });
+
+            Button button = (Button) view.findViewById(R.id.dataClearSw);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    originalCoords.clear();
+                    fusionCoords.clear();
+                    lastUpdate = 0;
+                    lastUpdate_coord = 0;
+                    lastUpdate_gyro = 0;
+                    lastUpdate_maget = 0;
+                    lastUpdate_step = 0;
+                    stepCount = 0;
+                    stepLength = 0;
+                    sumSinAngles = 0;
+                    sumCosAngles = 0;
+                    currentCoord= null;
+                }
+            });
         }
     }
 
@@ -165,6 +183,16 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                                     currentCoord = Point.fromLngLat(longitude, latitude);
                                 }
                                 currentCoord = coreAlgorithm.fusionLocation(currentCoord, Point.fromLngLat(longitude, latitude), coordCoefficient);
+
+                                String sFusionLon = String.format("%.5f", currentCoord.longitude());
+                                text = (TextView) getView().findViewById(R.id.fusionx);
+                                text.setText(sFusionLon);
+
+
+                                String sFusionLat = String.format("%.5f", currentCoord.latitude());
+                                text = (TextView) getView().findViewById(R.id.fusiony);
+                                text.setText(sFusionLat);
+
                                 fusionCoords.add(currentCoord);
                                 mapViewModel.addPointInMapSource("original-location", originalCoords);
                                 mapViewModel.addPointInMapSource("fusion-location", fusionCoords);
