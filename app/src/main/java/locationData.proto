@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+option java_package = "com.example.lvpdr.data";
+
+message MagneticData {
+    int32 zoneId = 1;                   // 区域编号
+    double magnitude = 2;               // 数据
+    fixed32 timestamp = 3;              // 消息的时间戳，单位1秒，Unix Epoch Time, UTC时区
+    int32 longitude = 4;                // 经度，单位10e-7度, 范围（0~180），例如：坐标（119.324343，31.3141341），取值为：1193243430
+    int32 latitude = 5;                 // 纬度，单位10e-7度，范围（0~180），例如：坐标（119.324343， 31.3141341），取值为：313141341
+}
+
+message MagneticDataByLine {
+    message cellData {
+        double magnitude = 1;           // 地磁强度，math.sqrt(mx*mx + my*my + mz*mz)
+        int32 seq = 2;                  // 顺序号
+    }
+    fixed32 timestamp = 1;              // 消息的时间戳，单位1秒，Unix Epoch Time, UTC时区
+    int32 longitude_start = 2;          // 起始经度，单位10e-7度, 范围（0~180），例如：坐标（119.324343，31.3141341），取值为：1193243430
+    int32 latitude_start = 3;           // 起始纬度，单位10e-7度，范围（0~180），例如：坐标（119.324343， 31.3141341），取值为：313141341
+    int32 longitude_end= 4;             // 结束经度，单位10e-7度, 范围（0~180），例如：坐标（119.324343，31.3141341），取值为：1193243430
+    int32 latitude_end = 5;             // 结束纬度，单位10e-7度，范围（0~180），例如：坐标（119.324343， 31.3141341），取值为：313141341
+    repeated cellData data = 6;         // 地磁数据
+}
+
+message locationData {
+    bytes id = 1;                       // 6个字节，安卓用安卓id
+    bytes battery = 2;                  // 电量，1个字节，取值范围0~100
+    bytes temperature = 3;              // 温度，1个字节，取值范围-128~127
+    float barometer = 4;                // 气压，单位hPa
+    fixed32 timestamp = 5;              // 定位消息的时间戳，单位1秒，Unix Epoch Time, UTC时区
+    int32 longitude = 6;                // 经度，单位10e-7度, 范围（0~180），例如：坐标（119.324343，31.3141341），取值为：1193243430
+    int32 latitude = 7;                 // 纬度，单位10e-7度，范围（0~180），例如：坐标（119.324343， 31.3141341），取值为：313141341
+    fixed32 app_ver = 8;                // App版本，例如：版本V1.2.3，取值为：(1 << 24) | (2 << 16) | (3 << 8)
+    bytes satellite_num = 9;            // 卫星数量
+    bytes hdop = 10;                    // 定位精度
+    bytes gnss_speed = 11;              // 速度
+    bytes status = 12;                  // status[0] -> bit0:运动，bit1:SOS，bit2:LTE信号，bit3:室内外，bit4:自由落体，bit5:快速跌落，bit6:充电，bit7:离开区域
+    fixed32 up_time = 13;               // 开启定位后持续工作时间，单位1秒，重启后置0
+    fixed32 squence_num = 14;           // 数据顺序号，从1开始计数，每发送一个数据计数+1，重启后置1
+}
+
+message heartBeat {
+    bytes id = 1;                       // 6个字节，设备唯一编号
+    uint32  timestamp = 2;              // 时间戳，单位1秒，UTC时区
+    bytes respond_state = 3;            // 预留，回复响应
+}
+

@@ -11,8 +11,10 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Switch;
@@ -26,7 +28,10 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.lvpdr.CoreAlgorithm;
 import com.example.lvpdr.R;
+import com.example.lvpdr.Sender;
 import com.example.lvpdr.core.LocationTrack;
+import com.example.lvpdr.data.LocationData;
+import com.example.lvpdr.data.cache.RedisClient;
 import com.example.lvpdr.ui.chart.ChartFragment;
 import com.example.lvpdr.ui.map.MapViewModel;
 import com.mapbox.geojson.Point;
@@ -36,10 +41,15 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+
+
 public class HomeFragment extends Fragment implements SensorEventListener {
     private static FragmentActivity mActivity;
 
     private SensorManager mSensorManager;
+    private WindowManager mWindowManager;
     Sensor mAccelerometer;
     Sensor mMagneticField;
     Sensor mRotationVector;
@@ -49,7 +59,9 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     private long lastUpdate_coord = 0;
     private long lastUpdate_gyro = 0;
     private long lastUpdate_maget = 0;
+    private long lastUpdate_rotvect = 0;
     private long lastUpdate_step = 0;
+    private double lastButterWorthMag = 0;
     private int stepCount = 0;
     private double stepLength = 0;
 
@@ -61,6 +73,8 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     ChartFragment chartFragment;
     MapViewModel mapViewModel;
     CoreAlgorithm coreAlgorithm;
+    Sender mSender;
+    Jedis mRedisClient;
     Timer timer = null;
 
     Boolean lastMagnetometerSet = false;
@@ -71,11 +85,15 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     float [] mRotationMatrix = new float[9];
     float [] mOrientationAngles = new float[3];
     float [] mRotationMatrixFromVector = new float[16];
-    ArrayList<float[]> accelerationData = new ArrayList<float[]>();
+    float I[] = new float[9];
+    private  ArrayList<Double> lastButterWorthMagArr = new ArrayList<>();
+    private ArrayList<float[]> accelerationData = new ArrayList<float[]>();
     private  ArrayList<Point> originalCoords = new ArrayList<Point>();
     private  ArrayList<Point> fusionCoords = new ArrayList<Point>();
     double sumSinAngles = 0;
     double sumCosAngles = 0;
+
+    double currentAngle = 0;
 
     Point currentCoord;
 
@@ -84,6 +102,9 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     public int i = 0;
 
     private float coordCoefficient = 0.3f;
+
+    private boolean _isIndoor = false;
+    private boolean _isCollect = false;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -97,15 +118,20 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         coreAlgorithm = new CoreAlgorithm(20, 1.7, 0.4f);
+        mSender = new Sender("47.117.168.13", 31327);
+        mSender.start();
+        mRedisClient = new RedisClient().getPool();
+        mRedisClient.sadd("test", 123, new Map);
         View view = getView();
         if (view != null) {
             mActivity = getActivity();
             mSensorManager = (SensorManager) mActivity.getSystemService(Context.SENSOR_SERVICE);
+            mWindowManager = mActivity.getWindow().getWindowManager();
             assert mSensorManager != null;
             mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             //senGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
             mMagneticField = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-            mRotationVector = mSensorManager.getDefaultSensor(TYPE_ROTATION_VECTOR);
+            //mRotationVector = mSensorManager.getDefaultSensor(TYPE_ROTATION_VECTOR);
             Switch toggle = (Switch) view.findViewById(R.id.sensorSw);
             toggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (isChecked) {
@@ -117,22 +143,47 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                 }
             });
 
+            Switch toggle1 = (Switch) view.findViewById(R.id.indoorSw);
+            toggle1.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked) {
+                    _isIndoor = true;
+                    TextView textView = view.findViewById(R.id.gpsCord);
+                    textView.setText("室内坐标：");
+                    TextView text = (TextView) getView().findViewById(R.id.gpsx);
+                    text.setText("0.000");
+
+                    text = (TextView) getView().findViewById(R.id.gpsy);
+                    text.setText("0.000");
+                } else {
+                    _isIndoor = false;
+                    TextView textView = view.findViewById(R.id.gpsCord);
+                    textView.setText("卫星坐标：");
+                    TextView text = (TextView) getView().findViewById(R.id.gpsx);
+                    text.setText("0.000");
+
+                    text = (TextView) getView().findViewById(R.id.gpsy);
+                    text.setText("0.000");
+                }
+            });
+
             Button button = (Button) view.findViewById(R.id.dataClearSw);
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    originalCoords.clear();
-                    fusionCoords.clear();
-                    lastUpdate = 0;
-                    lastUpdate_coord = 0;
-                    lastUpdate_gyro = 0;
-                    lastUpdate_maget = 0;
-                    lastUpdate_step = 0;
-                    stepCount = 0;
-                    stepLength = 0;
-                    sumSinAngles = 0;
-                    sumCosAngles = 0;
-                    currentCoord= null;
+                    if (_isCollect) _isCollect = false;
+                    else _isCollect = true;
+//                    originalCoords.clear();
+//                    fusionCoords.clear();
+//                    lastUpdate = 0;
+//                    lastUpdate_coord = 0;
+//                    lastUpdate_gyro = 0;
+//                    lastUpdate_maget = 0;
+//                    lastUpdate_step = 0;
+//                    stepCount = 0;
+//                    stepLength = 0;
+//                    sumSinAngles = 0;
+//                    sumCosAngles = 0;
+//                    currentCoord= null;
                 }
             });
         }
@@ -165,6 +216,19 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                         public void run() {
                             // This code will always run on the UI thread, therefore is safe to modify UI elements.
                             locationTrack = LocationTrack.getInstance();
+                            if(_isIndoor){
+                                if(currentCoord == null){
+                                    TextView text = (TextView) getView().findViewById(R.id.gpsx);
+                                    double longitude = new Double(text.getText().toString());
+                                    if(longitude < 1.0) return;
+                                    text = (TextView) getView().findViewById(R.id.gpsy);
+                                    double latitude = new Double(text.getText().toString());
+                                    currentCoord = Point.fromLngLat(longitude, latitude);
+                                }else {
+
+                                }
+                            }else return;
+
                             if (locationTrack.canGetLocation()) {
                                 double longitude = locationTrack.getLocation().getLongitude();
                                 double latitude = locationTrack.getLocation().getLatitude();
@@ -188,7 +252,6 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                                 text = (TextView) getView().findViewById(R.id.fusionx);
                                 text.setText(sFusionLon);
 
-
                                 String sFusionLat = String.format("%.5f", currentCoord.latitude());
                                 text = (TextView) getView().findViewById(R.id.fusiony);
                                 text.setText(sFusionLat);
@@ -208,8 +271,8 @@ public class HomeFragment extends Fragment implements SensorEventListener {
             }, GNSS_UPDATE_DELAY, GNSS_UPDATE_PERIOD);
             mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
 //            mSensorManager.registerListener(this, senGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
-            mSensorManager.registerListener(this, mMagneticField, SensorManager.SENSOR_DELAY_NORMAL);
-            mSensorManager.registerListener(this, mRotationVector, SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(this, mMagneticField, SensorManager.SENSOR_DELAY_GAME);
+//            mSensorManager.registerListener(this, mRotationVector, SensorManager.SENSOR_DELAY_UI);
         }
     }
 
@@ -253,14 +316,14 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                     Math.pow(lastAccelerometer[2], 2)
             );
             if((accData < 11 && accData > 9.1) || accData > 13) return;
-            chartFragment.onUdata((float) accData);
+            //chartFragment.onUdata((float) accData);
             double newStepLength = coreAlgorithm.calculateStepLength(lastAccelerometer);
             if(currentTime - lastUpdate_step > 3000){
                 coordCoefficient = 1.0f;
             }else
                 coordCoefficient = 0.3f;
             if(newStepLength > 0.1){
-                if(lastUpdate_step == 0 || currentTime - lastUpdate_step > 400) {
+                if(lastUpdate_step == 0 || currentTime - lastUpdate_step > 200) {
                     stepCount += 1;
                     lastUpdate_step = currentTime;
                 } else
@@ -269,11 +332,29 @@ public class HomeFragment extends Fragment implements SensorEventListener {
             stepLength += newStepLength;
             if(currentCoord != null){
                 Point coord3857 = coreAlgorithm.EPSG4326To3857(currentCoord);
-                double currentLon =  sumCosAngles * newStepLength + coord3857.longitude();
-                double currentLat =  sumSinAngles * newStepLength + coord3857.latitude();
+                double currentLon =  Math.cos(currentAngle) * newStepLength + coord3857.longitude();
+                double currentLat =  Math.sin(currentAngle) * newStepLength + coord3857.latitude();
                 currentCoord = coreAlgorithm.EPSG3857To4326(Point.fromLngLat(currentLon, currentLat));
-                sumCosAngles = 0;
-                sumSinAngles = 0;
+                if(_isCollect == true && lastButterWorthMagArr.size() > 0){
+                    double avgMag = 0.0;
+                    for (int i = 0; i < lastButterWorthMagArr.size(); i++){
+                        avgMag += lastButterWorthMagArr.get(i) / lastButterWorthMagArr.size();
+                    }
+                    if(mSender.isConnected()){
+                        // 发送点位数据
+                        LocationData.MagneticData locationData =  LocationData.MagneticData.newBuilder()
+                                .setZoneId(1)
+                                .setMagnitude(avgMag)
+                                .setLatitude((int)(currentLat * 10000000))
+                                .setLongitude((int)(currentLon * 10000000))
+                                .setTimestamp((int)(currentTime / 1000))
+                                .build();
+                        mSender.send(locationData.toByteArray());
+                    }
+                }
+
+//                sumCosAngles = 0;
+//                sumSinAngles = 0;
             }
             TextView text = (TextView) getView().findViewById(R.id.stepLength);
             text.setText(String.format("%.2f", stepLength));
@@ -283,17 +364,17 @@ public class HomeFragment extends Fragment implements SensorEventListener {
 
         }
         if (sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            TextView text1 = (TextView) getView().findViewById(R.id.stepNum);
+            text1.setText(Integer.toString(++stepCount));
+
             float mx = sensorEvent.values[0];
             float my = sensorEvent.values[1];
             float mz = sensorEvent.values[2];
 
             long currentTime = System.currentTimeMillis();
             if ((currentTime - lastUpdate_maget > 0)) {
-
                 lastUpdate_maget = currentTime;
-
                 {
-
                     String sX = Float.toString(mx);
                     TextView text = (TextView) getView().findViewById(R.id.mx);
                     text.setText(sX);
@@ -305,7 +386,6 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                     String sZ = Float.toString(mz);
                     text = (TextView) getView().findViewById(R.id.mz);
                     text.setText(sZ);
-
                 }
             }
             //calculate
@@ -315,22 +395,100 @@ public class HomeFragment extends Fragment implements SensorEventListener {
 
             lastMagnetometer = lowPass(sensorEvent.values.clone(), lastMagnetometer);
 
+            double magnetometerData = Math.sqrt(Math.pow(lastMagnetometer[0], 2) +
+                    Math.pow(lastMagnetometer[1], 2) +
+                    Math.pow(lastMagnetometer[2], 2)
+            );
+            lastButterWorthMag = coreAlgorithm.ButterWorth_lowPass(magnetometerData);
+            if(chartFragment == null) chartFragment = ChartFragment.getInstance();
+            if(chartFragment == null) return;
+            chartFragment.onUdata((float) magnetometerData, (float)lastButterWorthMag);
+            lastButterWorthMagArr.add(lastButterWorthMag);
+
             if (lastAccelerometerSet && lastMagnetometerSet)
             {
-                mSensorManager.getRotationMatrix(mRotationMatrix, null, lastAccelerometer, lastMagnetometer);
-                mSensorManager.getOrientation(mRotationMatrix, mOrientationAngles);
-                float azimuthInRadians = mOrientationAngles[0];
-                sumCosAngles += Math.cos(mOrientationAngles[0]);
-                sumSinAngles += Math.sin(mOrientationAngles[0]);
 
-                int azimuthInDegress = ((int)(azimuthInRadians * 180/(float) Math.PI) + 360) % 360;
+                mSensorManager.getRotationMatrix(mRotationMatrix, I, lastAccelerometer, sensorEvent.values);
+                mSensorManager.getOrientation(mRotationMatrix, mOrientationAngles);
+//                String sX = Float.toString(mOrientationAngles[0]* -57);
+//                TextView text = (TextView) getView().findViewById(R.id.gx);
+//                text.setText(sX);
+//
+//                String sY = Float.toString(mOrientationAngles[1]* -57);
+//                text = (TextView) getView().findViewById(R.id.gy);
+//                text.setText(sY);
+//
+//                String sZ = Float.toString(mOrientationAngles[2]* -57);
+//                text = (TextView) getView().findViewById(R.id.gz);
+//                text.setText(sZ);
+
+
+                currentAngle = mOrientationAngles[0];
+//                sumCosAngles += Math.cos(mOrientationAngles[0]);
+//                sumSinAngles += Math.sin(mOrientationAngles[0]);
+//
+//                int azimuthInDegress = ((int)(azimuthInRadians * 180/(float) Math.PI) + 360) % 360;
 //                System.out.println(azimuthInDegress);
             }
 
+//            if(mSender.isConnected()){
+//                // 发送点位数据
+//                LocationData.MagneticData locationData =  LocationData.MagneticData.newBuilder()
+//                        .setMx(mx)
+//                        .setMy(my)
+//                        .setMz(mz)
+//                        .setLatitude(0)
+//                        .setLongitude(0)
+//                        .setTimeStamp((int)(currentTime/1000))
+//                        .build();
+//                mSender.send(locationData.toByteArray());
+//            }
+
         }
         if (sensor.getType() == Sensor.TYPE_ROTATION_VECTOR){
-            SensorManager.getRotationMatrixFromVector(mRotationMatrixFromVector, sensorEvent.values);
-            SensorManager.getOrientation(mRotationMatrixFromVector, mOrientationAngles);
+            long currentTime = System.currentTimeMillis();
+            if ((currentTime - lastUpdate_maget > 1000)){
+                lastUpdate_maget = currentTime;
+                //SensorManager.getRotationMatrixFromVector(mRotationMatrix, sensorEvent.values);
+                //SensorManager.getOrientation(mRotationMatrixFromVector, mOrientationAngles);
+
+                final int worldAxisForDeviceAxisX;
+                final int worldAxisForDeviceAxisY;
+
+                switch (mWindowManager.getDefaultDisplay().getRotation()) {
+                    case Surface.ROTATION_0:
+                    default:
+                        worldAxisForDeviceAxisX = SensorManager.AXIS_X;
+                        worldAxisForDeviceAxisY = SensorManager.AXIS_Z;
+                        break;
+                    case Surface.ROTATION_90:
+                        worldAxisForDeviceAxisX = SensorManager.AXIS_Z;
+                        worldAxisForDeviceAxisY = SensorManager.AXIS_MINUS_X;
+                        break;
+                    case Surface.ROTATION_180:
+                        worldAxisForDeviceAxisX = SensorManager.AXIS_MINUS_X;
+                        worldAxisForDeviceAxisY = SensorManager.AXIS_MINUS_Z;
+                        break;
+                    case Surface.ROTATION_270:
+                        worldAxisForDeviceAxisX = SensorManager.AXIS_MINUS_Z;
+                        worldAxisForDeviceAxisY = SensorManager.AXIS_X;
+                        break;
+                }
+//            TextView text = (TextView) getView().findViewById(R.id.stepNum);
+//            text.setText(Integer.toString(mWindowManager.getDefaultDisplay().getRotation()));
+                float[] adjustedRotationMatrix = new float[9];
+                SensorManager.remapCoordinateSystem(mRotationMatrix, worldAxisForDeviceAxisX,
+                        worldAxisForDeviceAxisY, adjustedRotationMatrix);
+
+                // Transform rotation matrix into azimuth/pitch/roll
+                float[] orientation = new float[3];
+                //SensorManager.getOrientation(adjustedRotationMatrix, orientation);
+               // if
+                sumCosAngles = Math.cos(orientation[0]);
+                sumSinAngles = Math.sin(orientation[0]);
+
+            }
+
         }
         if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
             float gx = sensorEvent.values[0];

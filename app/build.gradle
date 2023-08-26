@@ -61,4 +61,7 @@ dependencies {
     }
     implementation 'org.locationtech.proj4j:proj4j:1.1.0'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+    implementation group: 'uk.me.berndporr', name:'iirj', version: '1.5'
+    implementation 'com.google.protobuf:protobuf-java:3.17.3'
+    implementation 'redis.clients:jedis:3.7.0'
 }

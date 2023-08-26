@@ -1,7 +1,6 @@
 package com.example.lvpdr;
 
-import com.github.psambit9791.jdsp.signal.peaks.FindPeak;
-import com.github.psambit9791.jdsp.signal.peaks.Peak;
+
 import com.mapbox.geojson.Point;
 
 import org.apache.commons.math3.complex.Complex;
@@ -14,6 +13,7 @@ import org.locationtech.proj4j.CoordinateReferenceSystem;
 import org.locationtech.proj4j.CoordinateTransform;
 import org.locationtech.proj4j.CoordinateTransformFactory;
 import org.locationtech.proj4j.ProjCoordinate;
+import uk.me.berndporr.iirj.*;
 
 import java.util.ArrayList;
 
@@ -32,114 +32,6 @@ public class CoreAlgorithm {
         this.sampleRate = sampleRate;
         this.height = height;
         this.K = K;
-
-       // double [] testdata = {6.6, 14, 13.8, 17, 16.5, 16.9, 16.7, 10.5, 7, 7.1, 6.5, 6.4, 6.2,6.3,6.5};
-    }
-
-    class ButterworthFilter {
-        private double[] xv, yv;
-        private double gain;
-        private double[] numeratorCoeffs, denominatorCoeffs;
-
-        public ButterworthFilter(double cutoffFrequency, double sampleRate, int order) {
-            //sampleRate代表采样频率
-            //order表示巴特沃斯滤波器的阶数。阶数决定了滤波器的复杂度和性能
-            xv = new double[order + 1];
-            yv = new double[order + 1];
-
-            // Calculate the filter coefficients
-            double[] coeffs = calculateCoefficients(cutoffFrequency, sampleRate, order);
-            numeratorCoeffs = new double[order + 1];
-            denominatorCoeffs = new double[order + 1];
-            for (int i = 0; i < order + 1; i++) {
-                numeratorCoeffs[i] = coeffs[i];
-                denominatorCoeffs[i] = coeffs[order + 1 + i];
-            }
-        }
-
-        public double filter(double value) {
-            // Shift the old values
-            for (int i = 0; i < xv.length - 1; i++) {
-                xv[i] = xv[i + 1];
-                yv[i] = yv[i + 1];
-            }
-
-            // Add the new value
-            xv[xv.length - 1] = value / gain;
-
-            // Calculate the filter output
-            yv[yv.length - 1] = 0;
-            for (int i = 0; i < xv.length; i++) {
-                yv[yv.length - 1] += numeratorCoeffs[i] * xv[xv.length - i - 1];
-                if (i > 0) {
-                    yv[yv.length - 1] -= denominatorCoeffs[i] * yv[yv.length - i - 1];
-                }
-            }
-
-            return yv[yv.length - 1];
-        }
-
-        private double[] calculateCoefficients(double cutoffFrequency, double sampleRate, int order) {
-            // Calculate the normalized cutoff frequency
-            double omega = Math.tan(Math.PI * cutoffFrequency / sampleRate);
-
-            // Calculate the filter coefficients
-            int n = order / 2;
-            int m = order - n * 2;
-            int size = n * 2 + m;
-            double[] a = new double[size + 1];
-            a[0] = 1;
-            for (int k = 0; k < n; k++) {
-                double[] aTmp = new double[size + 1];
-                aTmp[0] = a[0];
-                for (int i = 0; i < size; i++) {
-                    aTmp[i + 1] += a[i];
-                    aTmp[i] += a[i + 1];
-                }
-                a = aTmp;
-            }
-            if (m > 0) {
-                for (int i = size; i >= 0; i--) {
-                    a[i + m] += a[i];
-                    if (i > m) {
-                        a[i] += a[i - m];
-                    }
-                }
-            }
-            for (int k = n - 1; k >= 0; k--) {
-                for (int i = size; i >= m; i--) {
-                    a[i] -= a[i - m];
-                    if (i > m) {
-                        a[i] -= a[i - m - 1];
-                    }
-                }
-                for (int i = size; i >= m; i--) {
-                    if (i > m) {
-                        a[i - m - 1] += a[i];
-                    }
-                    if (i > m * 2) {
-                        a[i - m * 2 - 1] += a[i];
-                    }
-                }
-            }
-
-            // Calculate the gain
-            gain = Math.pow(omega, order);
-            for (int k = size; k >= m; k--) {
-                gain += omega * omega * a[k];
-                if (k > m) {
-                    gain += omega * omega * a[k - m];
-                }
-            }
-
-            // Calculate the filter coefficients
-            double[] coeffs = new double[(order + 1) * 2];
-            for (int i = 0; i < order + 1; i++) {
-                coeffs[i] = a[i];
-                coeffs[order + 1 + i] = a[i];
-            }
-            return coeffs;
-        }
     }
 
     final public class Matrix {
@@ -441,44 +333,6 @@ public class CoreAlgorithm {
         }
     }
 
-//    public double calculateStepLength(ArrayList<float[]> accelerationData) {
-//        // Calculate the magnitude of the acceleration vector
-//        double[] accelerationMagnitude = new double[accelerationData.size()];
-//        int index = 0;
-//        for (float[] acc: accelerationData) {
-//            accelerationMagnitude[index++] = Math.sqrt(Math.pow(acc[0], 2) + Math.pow(acc[1], 2) + Math.pow(acc[2], 2));
-//        }
-//
-//        // High-pass filter the acceleration magnitude to remove gravity
-//        double fc = 0.5;  // Cutoff frequency
-//        ButterworthFilter butterworthFilter = new ButterworthFilter(fc, sampleRate, 4);
-//        double[] filteredAccelerationMagnitude = new double[accelerationMagnitude.length];
-//        for (int i = 0; i < accelerationMagnitude.length; i++) {
-//            filteredAccelerationMagnitude[i] = butterworthFilter.filter(accelerationMagnitude[i]);
-//        }
-//
-//        // Find peaks in the filtered acceleration magnitude
-//        int[] peakIndices = peaks(accelerationMagnitude);
-//
-//        // Calculate the average time between peaks
-//        DescriptiveStatistics stats = new DescriptiveStatistics();
-//        for (int i = 1; i < peakIndices.length; i++) {
-//            stats.addValue(peakIndices[i] - peakIndices[i - 1]);
-//        }
-//        double timeBetweenPeaks = stats.getMean() / sampleRate;
-//        System.out.println(stats.getMean());
-//
-//        // Calculate step frequency
-//        double stepFrequency = 1 / timeBetweenPeaks;
-//        if(stepFrequency < 0) return 0;
-//
-//        // Calculate step length using the formula: L = K * H * sqrt(f),
-//        // where L is step length, K is a coefficient, H is height and f is step frequency
-//        double stepLength = K * height * Math.sqrt(stepFrequency);
-//
-//        return stepLength;
-//    }
-
     public double calculateStepLength(float[] data){
         //
         float[] accData = new float[3];
@@ -503,87 +357,6 @@ public class CoreAlgorithm {
             accelerationData = new ArrayList(accelerationData.subList(valleys[1], accelerationData.size()));
         }
         return -0.19 * diff + 0.94 * Math.sqrt(Math.sqrt(diff));
-    }
-
-//    private int[] peaks(double[] data){
-//        int n = data.length;
-//        double[] real = new double[n];
-//        double[] imag = new double[n];
-//        for (int i = 0; i < n; i++) {
-//            real[i] = data[i];
-//            imag[i] = 0;
-//        }
-//        fft(real, imag);
-//        double[] magnitude = new double[n];
-//        for (int i = 0; i < n; i++) {
-//            magnitude[i] = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]);
-//        }
-//        return findPeaks(magnitude);
-//    }
-
-    public void fft(double[] real, double[] imag) {
-        int n = real.length;
-        if (n == 1) return;
-
-        double[] evenReal = new double[n / 2];
-        double[] evenImag = new double[n / 2];
-        double[] oddReal = new double[n / 2];
-        double[] oddImag = new double[n / 2];
-
-        for (int i = 0; i < n / 2; i++) {
-            evenReal[i] = real[2 * i];
-            evenImag[i] = imag[2 * i];
-            oddReal[i] = real[2 * i + 1];
-            oddImag[i] = imag[2 * i + 1];
-        }
-
-        fft(evenReal, evenImag);
-        fft(oddReal, oddImag);
-
-        for (int k = 0; k < n / 2; k++) {
-            double tReal = evenReal[k];
-            double tImag = evenImag[k];
-            double angle = -2 * Math.PI * k / n;
-            double cosAngle = Math.cos(angle);
-            double sinAngle = Math.sin(angle);
-            real[k] = tReal + cosAngle * oddReal[k] - sinAngle * oddImag[k];
-            imag[k] = tImag + cosAngle * oddImag[k] + sinAngle * oddReal[k];
-            real[k + n / 2] = tReal - cosAngle * oddReal[k] + sinAngle * oddImag[k];
-            imag[k + n / 2] = tImag - cosAngle * oddImag[k] - sinAngle * oddReal[k];
-        }
-    }
-
-//    private int[] findPeaks(double[] data) {
-//        // Find peaks in data using the Fast Fourier Transform (FFT)
-//        FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
-//        Complex[] complexData = new Complex[data.length];
-//        for (int i = 0; i < data.length; i++) {
-//            complexData[i] = new Complex(data[i], 0);
-//        }
-//        Complex[] fftData = fft.transform(complexData, TransformType.FORWARD);
-//
-//        // Find peak indices
-//        int[] peakIndices = new int[fftData.length];
-//        int peakCount = 0;
-//        for (int i = 1; i < fftData.length - 1; i++) {
-//            if (fftData[i].abs() > fftData[i - 1].abs() && fftData[i].abs() > fftData[i + 1].abs()) {
-//                peakIndices[peakCount] = i;
-//                peakCount++;
-//            }
-//        }
-//
-//        return peakIndices;
-//    }
-
-    private int[] peakDetections(double[] data) {
-        FindPeak fp = new FindPeak(data);
-
-        Peak out = fp.detectPeaks();
-        int[] peaks = out.getPeaks();
-
-        Peak out2 = fp.detectTroughs();
-        int[] troughs = out2.getPeaks();
-        return troughs;
     }
 
     private ArrayList findPeakValley(ArrayList<float[]> data){
@@ -625,7 +398,7 @@ public class CoreAlgorithm {
                     peakIndex = i;
                 }
             }else{
-                continue;
+                //do nothing
             }
         }
         if(flag == -1)
@@ -663,6 +436,31 @@ public class CoreAlgorithm {
         ProjCoordinate result = new ProjCoordinate();
         _32650To4326.transform(new ProjCoordinate(point.longitude(), point.latitude()), result);
         return Point.fromLngLat(result.x, result.y);
+    }
+
+    public double ButterWorth_lowPass(double v) {
+        Butterworth butterworth = new Butterworth();
+        butterworth.lowPass(5, 50, 20);
+        return butterworth.filter(v);
+    }
+
+    private double calculateCosDistance(ArrayList<Float> l1, ArrayList<Float> l2) {
+        double A = 0, B = 0, AB = 0;
+        for (int i = 0; i < l2.size(); i++) {
+            double a = l1.get(i);
+            double b = l2.get(i);
+            A += a * a;
+            B += b * b;
+            AB += a * b;
+        }
+        return Math.acos(AB / Math.sqrt(A) / Math.sqrt(B));
+    }
+
+    private float similarity(double input){
+        float result = 0.0f;    //  result is ranges from 0.0 to 1.0;
+                                //  1.0 indicates high similarity;
+
+        return result;
     }
 
 }

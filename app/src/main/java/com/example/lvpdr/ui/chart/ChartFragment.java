@@ -40,7 +40,9 @@ public  class ChartFragment extends Fragment {
     private FragmentChartBinding binding;
     private LineChart chartView;
     private LineDataSet dataSet;
+    private LineDataSet dataSet_filter;
     private List<Entry> entries;
+    private List<Entry> entries_filter;
 
     private static ChartFragment singleton = null;
 
@@ -110,11 +112,11 @@ public  class ChartFragment extends Fragment {
 
         YAxis y1 = chartView.getAxisLeft();
         y1.setDrawGridLines(false);
-        y1.setAxisMinimum(0);
+        y1.setAxisMinimum(10);
 //        y1.setGranularity(0.5f);
         y1.setDrawZeroLine(false);
 
-        y1.setAxisMaximum(40);
+        y1.setAxisMaximum(65);
         y1.setLabelCount(20, false);
 
 //        YAxis y1_right = chartView.getAxisRight();
@@ -144,8 +146,10 @@ public  class ChartFragment extends Fragment {
 
     private void _initData() {
         entries = new ArrayList<>();
+        entries_filter = new ArrayList<>();
         for (int i = 0; i < MAX_VALUES; i++) {
             entries.add(new Entry(i, zeroLine));
+            entries_filter.add(new Entry(i, zeroLine));
         }
 
         setDataStyle();
@@ -153,9 +157,11 @@ public  class ChartFragment extends Fragment {
 
     public void setDataStyle(){
         dataSet = new LineDataSet(entries, "");
+        dataSet_filter =  new LineDataSet(entries_filter, "");
 
         //dataSet.setFillColor(Color.parseColor(lineColor));
         dataSet.setColor(Color.parseColor(lineColor));
+        dataSet_filter.setColor(Color.parseColor(lineColor));
 //
 //        dataSet.setDrawFilled(lineColor2!=null);
 //        if(lineColor2!=null){
@@ -163,6 +169,8 @@ public  class ChartFragment extends Fragment {
 //        }
 
         dataSet.setLineWidth(2);
+        dataSet_filter.setLineWidth(2);
+
 
 //        dataSet.setDrawCircleHole(false);
 
@@ -171,34 +179,43 @@ public  class ChartFragment extends Fragment {
 //        dataSet.setCircleColor(Color.parseColor("#78C256"));
 
         dataSet.setValueTextSize(13);
+        dataSet_filter.setValueTextSize(13);
 
         dataSet.setValueTextColor(Color.parseColor("#78C256"));
+        dataSet_filter.setValueTextColor(Color.parseColor("#000080"));
 
         dataSet.setMode(LineDataSet.Mode.LINEAR);
+        dataSet_filter.setMode(LineDataSet.Mode.LINEAR);
 
         dataSet.setDrawValues(false);
+        dataSet_filter.setDrawValues(false);
 
         dataSet.setDrawCircles(false);
+        dataSet_filter.setDrawCircles(false);
 
         lineData = new LineData(dataSet);
+        lineData.addDataSet(dataSet_filter);
 
         chartView.setData(lineData);
+
 
         init = true;
     }
 
-    public void onUdata(float v) {
+    public void onUdata(float v, float vf) {
         if(!init){
             return;
         }
         if (i > MAX_VALUES - 1){
-
             for(int j = 0; j< MAX_VALUES - 1; j++){
                 entries.set(j, new Entry(j, entries.get(j+1).getY()));
+                entries_filter.set(j, new Entry(j, entries_filter.get(j+1).getY()));
             }
             entries.set(MAX_VALUES - 1, new Entry(MAX_VALUES - 1, v));
+            entries_filter.set(MAX_VALUES - 1, new Entry(MAX_VALUES - 1, vf));
         }else{
             entries.set(i, new Entry(i, v));
+            entries_filter.set(i, new Entry(i, vf));
             i++;
         }
         chartView.setData(lineData);

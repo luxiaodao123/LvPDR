@@ -69,7 +69,7 @@ public class MapFragment extends Fragment {
         View view = getView();
         if (view != null) {
             mActivity = getActivity();
-            mapViewModel.getInstance().setMapView(mActivity.findViewById(R.id.mapView), getContext());
+            mapViewModel.getInstance().setMapView(mActivity, getContext());
         }
     }
 
