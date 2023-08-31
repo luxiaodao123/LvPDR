@@ -5,6 +5,7 @@ import static android.hardware.Sensor.TYPE_ROTATION_VECTOR;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -31,12 +32,18 @@ import com.example.lvpdr.R;
 import com.example.lvpdr.Sender;
 import com.example.lvpdr.core.LocationTrack;
 import com.example.lvpdr.data.LocationData;
+import com.example.lvpdr.data.cache.RedisCache;
 import com.example.lvpdr.data.cache.RedisClient;
 import com.example.lvpdr.ui.chart.ChartFragment;
 import com.example.lvpdr.ui.map.MapViewModel;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.mapbox.geojson.Point;
 
+import java.security.cert.PolicyNode;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -62,6 +69,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     private long lastUpdate_rotvect = 0;
     private long lastUpdate_step = 0;
     private double lastButterWorthMag = 0;
+    private double lastPostionMag = 0;
     private int stepCount = 0;
     private double stepLength = 0;
 
@@ -74,7 +82,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     MapViewModel mapViewModel;
     CoreAlgorithm coreAlgorithm;
     Sender mSender;
-    Jedis mRedisClient;
+    RedisClient mRedisClient;
     Timer timer = null;
 
     Boolean lastMagnetometerSet = false;
@@ -90,6 +98,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     private ArrayList<float[]> accelerationData = new ArrayList<float[]>();
     private  ArrayList<Point> originalCoords = new ArrayList<Point>();
     private  ArrayList<Point> fusionCoords = new ArrayList<Point>();
+    private  ArrayList<Point> indoorCoords = new ArrayList<Point>();
     double sumSinAngles = 0;
     double sumCosAngles = 0;
 
@@ -106,6 +115,8 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     private boolean _isIndoor = false;
     private boolean _isCollect = false;
 
+    private ArrayList<String> magneticCollected = new ArrayList<>();
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -120,8 +131,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         coreAlgorithm = new CoreAlgorithm(20, 1.7, 0.4f);
         mSender = new Sender("47.117.168.13", 31327);
         mSender.start();
-        mRedisClient = new RedisClient().getPool();
-        mRedisClient.sadd("test", 123, new Map);
+        mRedisClient = new RedisClient();
         View view = getView();
         if (view != null) {
             mActivity = getActivity();
@@ -170,8 +180,40 @@ public class HomeFragment extends Fragment implements SensorEventListener {
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (_isCollect) _isCollect = false;
-                    else _isCollect = true;
+                    if (_isCollect) {
+                        button.setText("定位模式");
+                        button.setBackgroundColor(getResources().getColor(R.color.purple_700));
+                        _isCollect = false;
+                        if(magneticCollected.size() == 0) return;
+                        Map<String,  String> magInfo = new HashMap<>();
+                        String listString = "";
+                        for (String s : magneticCollected)
+                        {
+                            listString += s + "\t";
+                        }
+                        magInfo.put("Zone_0001", listString);
+                        mRedisClient.hset("zoneInfo", magInfo);
+                        magneticCollected.clear();
+                    }
+                    else {
+                        button.setText("采集模式");
+                        button.setBackgroundColor(getResources().getColor(R.color.teal_200));
+                        _isCollect = true;
+                        String res = null;
+                        try {
+                            res= mRedisClient.hget("zoneInfo", "Zone_0001");
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        if(res == null || res.equals("[]")) return;
+                        ArrayList<String> magneticCollected = new ArrayList<String>(Arrays.asList(res.split("\t")));
+                        try {
+                            RedisCache.setCache(magneticCollected);
+                        } catch (InvalidProtocolBufferException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                    }
 //                    originalCoords.clear();
 //                    fusionCoords.clear();
 //                    lastUpdate = 0;
@@ -224,10 +266,11 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                                     text = (TextView) getView().findViewById(R.id.gpsy);
                                     double latitude = new Double(text.getText().toString());
                                     currentCoord = Point.fromLngLat(longitude, latitude);
+                                    indoorCoords.add(currentCoord);
                                 }else {
-
+                                    return;
                                 }
-                            }else return;
+                            }
 
                             if (locationTrack.canGetLocation()) {
                                 double longitude = locationTrack.getLocation().getLongitude();
@@ -281,6 +324,8 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         Sensor sensor = sensorEvent.sensor;
 
         if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            //只在步行的时候才有效
+            //Todo: 考虑车辆定位，目前的想到的思路（还未实现）：室外的时候用GNSS, 室内的时候以地磁数据为主（可能准确率不是很高，就要考虑其他方案）
             lastAccelerometerSet = true;
 
             float x = sensorEvent.values[0];
@@ -319,6 +364,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
             //chartFragment.onUdata((float) accData);
             double newStepLength = coreAlgorithm.calculateStepLength(lastAccelerometer);
             if(currentTime - lastUpdate_step > 3000){
+                //长时间静止
                 coordCoefficient = 1.0f;
             }else
                 coordCoefficient = 0.3f;
@@ -328,19 +374,28 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                     lastUpdate_step = currentTime;
                 } else
                     return;
-            }
+            }else return;
             stepLength += newStepLength;
             if(currentCoord != null){
                 Point coord3857 = coreAlgorithm.EPSG4326To3857(currentCoord);
                 double currentLon =  Math.cos(currentAngle) * newStepLength + coord3857.longitude();
                 double currentLat =  Math.sin(currentAngle) * newStepLength + coord3857.latitude();
                 currentCoord = coreAlgorithm.EPSG3857To4326(Point.fromLngLat(currentLon, currentLat));
+                if(_isIndoor) {
+                    double lastDeltaMag = 0;
+                    if(lastPostionMag > 0) lastDeltaMag = lastButterWorthMag - lastPostionMag;
+                    lastPostionMag = lastButterWorthMag;
+                    coreAlgorithm.indoorFusionLocation(currentCoord, lastButterWorthMag, newStepLength, lastDeltaMag);
+                    indoorCoords.add(currentCoord);
+                    mapViewModel.addPointInMapSource("indoor-location", indoorCoords);
+                }
                 if(_isCollect == true && lastButterWorthMagArr.size() > 0){
                     double avgMag = 0.0;
                     for (int i = 0; i < lastButterWorthMagArr.size(); i++){
                         avgMag += lastButterWorthMagArr.get(i) / lastButterWorthMagArr.size();
                     }
-                    if(mSender.isConnected()){
+                    lastButterWorthMagArr.clear();
+//                    if(mSender.isConnected()){
                         // 发送点位数据
                         LocationData.MagneticData locationData =  LocationData.MagneticData.newBuilder()
                                 .setZoneId(1)
@@ -349,12 +404,10 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                                 .setLongitude((int)(currentLon * 10000000))
                                 .setTimestamp((int)(currentTime / 1000))
                                 .build();
-                        mSender.send(locationData.toByteArray());
-                    }
+//                        mSender.send(locationData.toByteArray());
+                        magneticCollected.add(Base64.getEncoder().encodeToString(locationData.toByteArray()));
+//                    }
                 }
-
-//                sumCosAngles = 0;
-//                sumSinAngles = 0;
             }
             TextView text = (TextView) getView().findViewById(R.id.stepLength);
             text.setText(String.format("%.2f", stepLength));
@@ -364,8 +417,6 @@ public class HomeFragment extends Fragment implements SensorEventListener {
 
         }
         if (sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            TextView text1 = (TextView) getView().findViewById(R.id.stepNum);
-            text1.setText(Integer.toString(++stepCount));
 
             float mx = sensorEvent.values[0];
             float my = sensorEvent.values[1];
@@ -410,25 +461,10 @@ public class HomeFragment extends Fragment implements SensorEventListener {
 
                 mSensorManager.getRotationMatrix(mRotationMatrix, I, lastAccelerometer, sensorEvent.values);
                 mSensorManager.getOrientation(mRotationMatrix, mOrientationAngles);
-//                String sX = Float.toString(mOrientationAngles[0]* -57);
-//                TextView text = (TextView) getView().findViewById(R.id.gx);
-//                text.setText(sX);
-//
-//                String sY = Float.toString(mOrientationAngles[1]* -57);
-//                text = (TextView) getView().findViewById(R.id.gy);
-//                text.setText(sY);
-//
-//                String sZ = Float.toString(mOrientationAngles[2]* -57);
-//                text = (TextView) getView().findViewById(R.id.gz);
-//                text.setText(sZ);
-
 
                 currentAngle = mOrientationAngles[0];
 //                sumCosAngles += Math.cos(mOrientationAngles[0]);
 //                sumSinAngles += Math.sin(mOrientationAngles[0]);
-//
-//                int azimuthInDegress = ((int)(azimuthInRadians * 180/(float) Math.PI) + 360) % 360;
-//                System.out.println(azimuthInDegress);
             }
 
 //            if(mSender.isConnected()){

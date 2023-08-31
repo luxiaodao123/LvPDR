@@ -102,6 +102,7 @@ public class MapViewModel extends ViewModel {
                                 ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
                         hoveringMarker.setLayoutParams(params);
                         mapView.addView(hoveringMarker);
+                        hoveringMarker.setVisibility(View.INVISIBLE);
 
                         activity.findViewById(R.id.addPoint).setOnClickListener(new View.OnClickListener(){
                             @Override
@@ -135,7 +136,8 @@ public class MapViewModel extends ViewModel {
                                     text.setText(sLat);
 
                                     isAdding = false;
-                                }else{
+                                }
+                                else{
                                     button.setImageResource(R.drawable.ic_button_check);
                                     hoveringMarker.setVisibility(View.VISIBLE);
                                     droppedMarkerLayer = style.getLayer(DROPPED_MARKER_LAYER_ID);
@@ -184,6 +186,15 @@ public class MapViewModel extends ViewModel {
                         "}");
         singleton.mapboxMap.getStyle().addSource(originalSource);
 
+        GeoJsonSource indoorSource = new GeoJsonSource("indoor-location",
+                "{\n" +
+                        "\"type\": \"FeatureCollection\",\n" +
+                        "\"crs\": { \"type\": \"name\", \"properties\": { \"name\": \"urn:ogc:def:crs:OGC:1.3:CRS84\" } },\n" +
+                        "\"features\": [\n" +
+                        "]\n" +
+                        "}");
+        singleton.mapboxMap.getStyle().addSource(indoorSource);
+
         CircleLayer fusionLayer = new CircleLayer("fusion-location", "fusion-location");
         fusionLayer.setProperties(
                 circleRadius(10f),
@@ -194,9 +205,15 @@ public class MapViewModel extends ViewModel {
                 circleRadius(10f),
                 circleColor(Color.parseColor("#0000FF"))
         );
+        CircleLayer indoorLayer = new CircleLayer("indoor-location", "indoor-location");
+        indoorLayer.setProperties(
+                circleRadius(10f),
+                circleColor(Color.parseColor("#00FF00"))
+        );
 
         singleton.mapboxMap.getStyle().addLayer(fusionLayer);
         singleton.mapboxMap.getStyle().addLayer(originalLayer);
+        singleton.mapboxMap.getStyle().addLayer(indoorLayer);
 //        GeoJsonSource source  = singleton.mapboxMap.getStyle().getSourceAs("original-location");
 //        List routeCoordinates = new ArrayList<Point>();
 //        routeCoordinates.add(Point.fromLngLat(119.9701341, 31.84944));

@@ -1,7 +1,13 @@
 package com.example.lvpdr;
 
 
+import android.util.Log;
+
+import com.example.lvpdr.data.cache.RedisCache;
 import com.mapbox.geojson.Point;
+import com.mapbox.turf.TurfClassification;
+import com.mapbox.turf.TurfMeasurement;
+import com.mapbox.turf.TurfMisc;
 
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -16,9 +22,11 @@ import org.locationtech.proj4j.ProjCoordinate;
 import uk.me.berndporr.iirj.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class CoreAlgorithm {
+    private static final String TAG = "CoreAlgorithm";
     private  static  ArrayList<float[]> accelerationData = new ArrayList<float[]>();
     private CRSFactory crsFactory = new CRSFactory();
     private CoordinateTransformFactory ctFactory = new CoordinateTransformFactory();
@@ -424,6 +432,40 @@ public class CoreAlgorithm {
         return fusionPoint;
     }
 
+    /**
+     *
+     * @param point 当前点
+     * @param mag   当前地磁强度
+     * @param dl    变化长度
+     * @param dm    变化强度
+     * @return      融合点
+     */
+    public Point indoorFusionLocation(Point point, double mag, double dl, double dm){
+        double K = 1.0;
+
+        //分别根据地磁强度和变化率寻找可能的点
+        List<Point> ptListByRange = RedisCache.getPtListByRange(mag);
+        List<Point> ptListBySlope = RedisCache.getPtListBySlope(dm / dl);
+
+        Point nearestByMag = findNearest(point, ptListByRange);
+        Point nearestBySlope = findNearest(point, ptListBySlope);
+
+        if(nearestByMag == null || nearestBySlope == null){
+            //当前测量值可能误差比较大，需要分析原因
+            Log.w(TAG, "当前测量误差较大");
+            return point;
+        }
+
+        if(nearestByMag.equals(nearestBySlope) && TurfMeasurement.distance(nearestByMag, point) * 1000 < 3) K = 0.0;
+
+
+        if(nearestByMag == null) return point;
+        Point fusionPoint = Point.fromLngLat(point.longitude() * K + nearestByMag.longitude() * (1 - K),
+                point.latitude() * K + nearestByMag.latitude() * (1 - K));
+
+        return fusionPoint;
+    }
+
     public Point EPSG4326To3857(Point point){
         CoordinateTransform _4326To32650 = ctFactory.createTransform(epsg4326, epsg3857);
         ProjCoordinate result = new ProjCoordinate();
@@ -444,7 +486,7 @@ public class CoreAlgorithm {
         return butterworth.filter(v);
     }
 
-    private double calculateCosDistance(ArrayList<Float> l1, ArrayList<Float> l2) {
+    public double calculateCosDistance(ArrayList<Float> l1, ArrayList<Float> l2) {
         double A = 0, B = 0, AB = 0;
         for (int i = 0; i < l2.size(); i++) {
             double a = l1.get(i);
@@ -456,11 +498,18 @@ public class CoreAlgorithm {
         return Math.acos(AB / Math.sqrt(A) / Math.sqrt(B));
     }
 
-    private float similarity(double input){
+    public float similarity(double input){
         float result = 0.0f;    //  result is ranges from 0.0 to 1.0;
                                 //  1.0 indicates high similarity;
+
+        //Todo: 判断相似度
 
         return result;
     }
 
+    public Point findNearest(Point p, List<Point> l) {
+        if(l.size() == 0 || p == null) return null;
+        Point res = TurfClassification.nearestPoint(p, l);
+        return res;
+    }
 }
