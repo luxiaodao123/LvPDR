@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.example.lvpdr.data.LocationData;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
 import com.mapbox.turf.TurfMeasurement;
 
@@ -20,6 +21,7 @@ public class RedisCache {
     private static double[] magArr; // 升序
     private static final double magRange = 0.5;// 磁场强度误差范围，需要根据实际情况去决定
     private static final double slopeRange = 0.5;// 磁场变化斜率误差范围，需要根据实际情况去决定
+    private static List<LineString> mEntranceArea = new ArrayList<>();//入口区域
 
     private static void _merge(double arr[], int l, int m, int r, List<Double> mag, List<Point> point) {
         int n1 = m - l + 1;
@@ -103,6 +105,10 @@ public class RedisCache {
             objCache.add(obj);
         }
         _sort();
+    }
+
+    static public void setCache(String data){
+        //Todo:
     }
 
     static public ArrayList<String> getStrCache(){
@@ -205,5 +211,9 @@ public class RedisCache {
             }
         }
         return res;
+    }
+
+    static public List<LineString> getEntranceArea(){
+        return mEntranceArea;
     }
 }

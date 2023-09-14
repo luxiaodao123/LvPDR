@@ -71,9 +71,9 @@ public class Sender extends Thread{
         try {
             byte[] msg = data.getBytes();
             byte[] len = intToByteArray(msg.length);
-            byte[] messageBody = new byte[len.length + msg.length];
-            System.arraycopy(len, 0, messageBody, 0, len.length);
-            System.arraycopy(msg, 0, messageBody, len.length, msg.length);
+            byte[] messageBody = new byte[msg.length];
+//            System.arraycopy(len, 0, messageBody, 0, len.length);
+            System.arraycopy(msg, 0, messageBody, 0, msg.length);
             Thread thread = new Thread(){
                 public void run(){
                     try{

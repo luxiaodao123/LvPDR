@@ -364,7 +364,9 @@ public class CoreAlgorithm {
             //先波谷再波峰
             accelerationData = new ArrayList(accelerationData.subList(valleys[1], accelerationData.size()));
         }
-        return -0.19 * diff + 0.94 * Math.sqrt(Math.sqrt(diff));
+        //-0.04, 0.565
+        //-0.19, 0.94
+        return -0.04 * diff + 0.565 * Math.sqrt(Math.sqrt(diff));
     }
 
     private ArrayList findPeakValley(ArrayList<float[]> data){
@@ -482,7 +484,7 @@ public class CoreAlgorithm {
 
     public double ButterWorth_lowPass(double v) {
         Butterworth butterworth = new Butterworth();
-        butterworth.lowPass(5, 50, 20);
+        butterworth.lowPass(1, 50, 20);
         return butterworth.filter(v);
     }
 
@@ -502,7 +504,7 @@ public class CoreAlgorithm {
         float result = 0.0f;    //  result is ranges from 0.0 to 1.0;
                                 //  1.0 indicates high similarity;
 
-        //Todo: 判断相似度
+        //Todo: 判断相似度，最长子序列LCSS
 
         return result;
     }
@@ -511,5 +513,17 @@ public class CoreAlgorithm {
         if(l.size() == 0 || p == null) return null;
         Point res = TurfClassification.nearestPoint(p, l);
         return res;
+    }
+
+    //Todo: 计算设备所有的轨迹移动线路，匹配出准确率最高的一条，删除偏移较大的轨迹
+    public void moveAllRoute(String id, Point p){
+
+
+        return;
+    }
+
+    //Todo: 切换算法
+    private boolean isInSwitchingArea(Point p){
+        return false;
     }
 }

@@ -7,17 +7,21 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.GnssStatus;
+import android.location.GpsSatellite;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 
 public class LocationTrack extends Service implements LocationListener {
+    private static final String TAG = "LocationTrack";
 
     private final Context mContext;
 
@@ -29,7 +33,7 @@ public class LocationTrack extends Service implements LocationListener {
 
     boolean checkNetwork = false;
 
-    boolean canGetLocation = false;
+    public boolean canGetLocation = false;
 
     Location loc;
     double latitude;
@@ -42,38 +46,43 @@ public class LocationTrack extends Service implements LocationListener {
     private static final long MIN_TIME_BW_UPDATES = 1000 * 1;
     protected LocationManager locationManager;
 
-    public LocationTrack(Context mContext) {
-        this.mContext = mContext;
-        if(singleton == null) {
+    public LocationTrack(Context context)
+    {
+        this.mContext = context;
+        if (singleton == null) {
             getLocation();
             singleton = this;
         }
     }
 
-    public static LocationTrack getInstance(){
+    public static LocationTrack getInstance() {
         return singleton;
     }
 
-    public Location getLocation() {
+    public Location getLocation()
+    {
 
         try {
             locationManager = (LocationManager) mContext
                     .getSystemService(LOCATION_SERVICE);
 
-            // get GNSS status
+            // get GPS status
             checkGNSS = locationManager
-                    .isProviderEnabled(LocationManager.GPS_PROVIDER);
+                    .isProviderEnabled(LocationManager.FUSED_PROVIDER);
 
             // get network provider status
             checkNetwork = locationManager
                     .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
-            if (!checkGNSS && !checkNetwork) {
+            if (!checkGNSS && !checkNetwork)
+            {
                 Toast.makeText(mContext, "No Service Provider is available", Toast.LENGTH_SHORT).show();
-            } else {
+            }
+            else
+            {
                 this.canGetLocation = true;
 
-                // if GNSS Enabled get lat/long using GNSS Services
+                // if GNSS Enabled get lat/long using GPS Services
                 if (checkGNSS) {
 
                     if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -86,12 +95,12 @@ public class LocationTrack extends Service implements LocationListener {
                         // for ActivityCompat#requestPermissions for more details.
                     }
                     locationManager.requestLocationUpdates(
-                            LocationManager.GPS_PROVIDER,
+                            LocationManager.FUSED_PROVIDER,
                             MIN_TIME_BW_UPDATES,
                             MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                     if (locationManager != null) {
                         loc = locationManager
-                                .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                                .getLastKnownLocation(LocationManager.FUSED_PROVIDER);
                         if (loc != null) {
                             latitude = loc.getLatitude();
                             longitude = loc.getLongitude();
@@ -100,7 +109,6 @@ public class LocationTrack extends Service implements LocationListener {
 
 
                 }
-
 
                 /*if (checkNetwork) {
 
@@ -141,25 +149,29 @@ public class LocationTrack extends Service implements LocationListener {
         return loc;
     }
 
-    public double getLongitude() {
+    public double getLongitude()
+    {
         if (loc != null) {
             longitude = loc.getLongitude();
         }
         return longitude;
     }
 
-    public double getLatitude() {
+    public double getLatitude()
+    {
         if (loc != null) {
             latitude = loc.getLatitude();
         }
         return latitude;
     }
 
-    public boolean canGetLocation() {
+    public boolean canGetLocation()
+    {
         return this.canGetLocation;
     }
 
-    public void showSettingsAlert() {
+    public void showSettingsAlert()
+    {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(mContext);
 
 
@@ -186,7 +198,8 @@ public class LocationTrack extends Service implements LocationListener {
         alertDialog.show();
     }
 
-    public void stopListener() {
+    public void stopListener()
+    {
         if (locationManager != null) {
 
             if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -204,27 +217,52 @@ public class LocationTrack extends Service implements LocationListener {
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
+    public IBinder onBind(Intent intent)
+    {
         return null;
     }
 
     @Override
-    public void onLocationChanged(Location location) {
+    public void onLocationChanged(Location location)
+    {
+//        int count = GnssStatus.get
+    }
+
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle)
+    {
+        int satellites = 0;
+        int satellitesInFix = 0;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        int timetofix = locationManager.getGpsStatus(null).getTimeToFirstFix();
+        Log.i(TAG, "Time to first fix = " + timetofix);
+        for (GpsSatellite sat : locationManager.getGpsStatus(null).getSatellites()) {
+            if(sat.usedInFix()) {
+                satellitesInFix++;
+            }
+            satellites++;
+        }
+        Log.i(TAG, satellites + " Used In Last Fix ("+satellitesInFix+")");
+    }
+
+    @Override
+    public void onProviderEnabled(String s)
+    {
 
     }
 
     @Override
-    public void onStatusChanged(String s, int i, Bundle bundle) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String s) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String s) {
+    public void onProviderDisabled(String s)
+    {
 
     }
 }

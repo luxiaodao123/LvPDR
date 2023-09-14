@@ -53,6 +53,23 @@ public class RedisClient {
         }
     }
 
+//    public void get(String key){
+//        try {
+//            Thread thread = new Thread(){
+//                public void run(){
+//                    try{
+//                        jedis.set(key, value);
+//                    }catch (Exception e){
+//                        Log.e(TAG, e.toString());
+//                    }
+//                }
+//            };
+//            thread.start();
+//        }catch (Exception e){
+//            Log.e(TAG, e.toString());
+//        }
+//    }
+
     public void xadd(String key, String ID, Map<String, String> map){
         try {
             Thread thread = new Thread(){
