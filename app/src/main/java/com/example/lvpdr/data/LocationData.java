@@ -2845,143 +2845,113 @@ public final class LocationData {
 
     /**
      * <pre>
-     * 6个字节，安卓用安卓id
+     * 定位卡唯一ID
      * </pre>
      *
-     * <code>bytes id = 1;</code>
+     * <code>string id = 1;</code>
      * @return The id.
      */
-    com.google.protobuf.ByteString getId();
-
+    java.lang.String getId();
     /**
      * <pre>
-     * 电量，1个字节，取值范围0~100
+     * 定位卡唯一ID
      * </pre>
      *
-     * <code>bytes battery = 2;</code>
-     * @return The battery.
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
      */
-    com.google.protobuf.ByteString getBattery();
-
-    /**
-     * <pre>
-     * 温度，1个字节，取值范围-128~127
-     * </pre>
-     *
-     * <code>bytes temperature = 3;</code>
-     * @return The temperature.
-     */
-    com.google.protobuf.ByteString getTemperature();
-
-    /**
-     * <pre>
-     * 气压，单位hPa
-     * </pre>
-     *
-     * <code>float barometer = 4;</code>
-     * @return The barometer.
-     */
-    float getBarometer();
-
-    /**
-     * <pre>
-     * 定位消息的时间戳，单位1秒，Unix Epoch Time, UTC时区
-     * </pre>
-     *
-     * <code>fixed32 timestamp = 5;</code>
-     * @return The timestamp.
-     */
-    int getTimestamp();
-
-    /**
-     * <pre>
-     * 经度，单位10e-7度, 范围（0~180），例如：坐标（119.324343，31.3141341），取值为：1193243430
-     * </pre>
-     *
-     * <code>int32 longitude = 6;</code>
-     * @return The longitude.
-     */
-    int getLongitude();
-
-    /**
-     * <pre>
-     * 纬度，单位10e-7度，范围（0~180），例如：坐标（119.324343， 31.3141341），取值为：313141341
-     * </pre>
-     *
-     * <code>int32 latitude = 7;</code>
-     * @return The latitude.
-     */
-    int getLatitude();
-
-    /**
-     * <pre>
-     * App版本，例如：版本V1.2.3，取值为：(1 &lt;&lt; 24) | (2 &lt;&lt; 16) | (3 &lt;&lt; 8)
-     * </pre>
-     *
-     * <code>fixed32 app_ver = 8;</code>
-     * @return The appVer.
-     */
-    int getAppVer();
+    com.google.protobuf.ByteString
+        getIdBytes();
 
     /**
      * <pre>
      * 卫星数量
      * </pre>
      *
-     * <code>bytes satellite_num = 9;</code>
+     * <code>int32 satellite_num = 5;</code>
      * @return The satelliteNum.
      */
-    com.google.protobuf.ByteString getSatelliteNum();
+    int getSatelliteNum();
 
     /**
      * <pre>
      * 定位精度
      * </pre>
      *
-     * <code>bytes hdop = 10;</code>
+     * <code>int32 hdop = 6;</code>
      * @return The hdop.
      */
-    com.google.protobuf.ByteString getHdop();
+    int getHdop();
 
     /**
      * <pre>
      * 速度
      * </pre>
      *
-     * <code>bytes gnss_speed = 11;</code>
+     * <code>float gnss_speed = 7;</code>
      * @return The gnssSpeed.
      */
-    com.google.protobuf.ByteString getGnssSpeed();
+    float getGnssSpeed();
 
     /**
      * <pre>
-     * status[0] -&gt; bit0:运动，bit1:SOS，bit2:LTE信号，bit3:室内外，bit4:自由落体，bit5:快速跌落，bit6:充电，bit7:离开区域
+     * 电池电量
      * </pre>
      *
-     * <code>bytes status = 12;</code>
-     * @return The status.
+     * <code>int32 battery_level = 8;</code>
+     * @return The batteryLevel.
      */
-    com.google.protobuf.ByteString getStatus();
+    int getBatteryLevel();
 
     /**
      * <pre>
-     * 开启定位后持续工作时间，单位1秒，重启后置0
+     * 高度，相对参考地面的高度，无效用小于-1000的值表示，典型值为-9999
      * </pre>
      *
-     * <code>fixed32 up_time = 13;</code>
+     * <code>float barometer = 13;</code>
+     * @return The barometer.
+     */
+    float getBarometer();
+
+    /**
+     * <pre>
+     * 经度
+     * </pre>
+     *
+     * <code>int32 longitude = 14;</code>
+     * @return The longitude.
+     */
+    int getLongitude();
+
+    /**
+     * <pre>
+     * 纬度
+     * </pre>
+     *
+     * <code>int32 latitude = 15;</code>
+     * @return The latitude.
+     */
+    int getLatitude();
+
+    /**
+     * <pre>
+     * 上传定位消息的定位卡的持续工作时间，单位1秒
+     * </pre>
+     *
+     * <code>fixed32 up_time = 16;</code>
      * @return The upTime.
      */
     int getUpTime();
 
     /**
      * <pre>
-     * 数据顺序号，从1开始计数，每发送一个数据计数+1，重启后置1
+     * 时间戳，单位1秒，UTC时区
      * </pre>
      *
-     * <code>fixed32 squence_num = 14;</code>
-     * @return The squenceNum.
+     * <code>fixed32 timestamp = 17;</code>
+     * @return The timestamp.
      */
-    int getSquenceNum();
+    int getTimestamp();
   }
   /**
    * Protobuf type {@code locationData}
@@ -2996,13 +2966,7 @@ public final class LocationData {
       super(builder);
     }
     private locationData() {
-      id_ = com.google.protobuf.ByteString.EMPTY;
-      battery_ = com.google.protobuf.ByteString.EMPTY;
-      temperature_ = com.google.protobuf.ByteString.EMPTY;
-      satelliteNum_ = com.google.protobuf.ByteString.EMPTY;
-      hdop_ = com.google.protobuf.ByteString.EMPTY;
-      gnssSpeed_ = com.google.protobuf.ByteString.EMPTY;
-      status_ = com.google.protobuf.ByteString.EMPTY;
+      id_ = "";
     }
 
     @java.lang.Override
@@ -3036,73 +3000,54 @@ public final class LocationData {
               done = true;
               break;
             case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
 
-              id_ = input.readBytes();
+              id_ = s;
               break;
             }
-            case 18: {
+            case 40: {
 
-              battery_ = input.readBytes();
-              break;
-            }
-            case 26: {
-
-              temperature_ = input.readBytes();
-              break;
-            }
-            case 37: {
-
-              barometer_ = input.readFloat();
-              break;
-            }
-            case 45: {
-
-              timestamp_ = input.readFixed32();
+              satelliteNum_ = input.readInt32();
               break;
             }
             case 48: {
 
-              longitude_ = input.readInt32();
+              hdop_ = input.readInt32();
               break;
             }
-            case 56: {
+            case 61: {
 
-              latitude_ = input.readInt32();
+              gnssSpeed_ = input.readFloat();
               break;
             }
-            case 69: {
+            case 64: {
 
-              appVer_ = input.readFixed32();
-              break;
-            }
-            case 74: {
-
-              satelliteNum_ = input.readBytes();
-              break;
-            }
-            case 82: {
-
-              hdop_ = input.readBytes();
-              break;
-            }
-            case 90: {
-
-              gnssSpeed_ = input.readBytes();
-              break;
-            }
-            case 98: {
-
-              status_ = input.readBytes();
+              batteryLevel_ = input.readInt32();
               break;
             }
             case 109: {
 
+              barometer_ = input.readFloat();
+              break;
+            }
+            case 112: {
+
+              longitude_ = input.readInt32();
+              break;
+            }
+            case 120: {
+
+              latitude_ = input.readInt32();
+              break;
+            }
+            case 133: {
+
               upTime_ = input.readFixed32();
               break;
             }
-            case 117: {
+            case 141: {
 
-              squenceNum_ = input.readFixed32();
+              timestamp_ = input.readFixed32();
               break;
             }
             default: {
@@ -3138,58 +3083,119 @@ public final class LocationData {
     }
 
     public static final int ID_FIELD_NUMBER = 1;
-    private com.google.protobuf.ByteString id_;
+    private volatile java.lang.Object id_;
     /**
      * <pre>
-     * 6个字节，安卓用安卓id
+     * 定位卡唯一ID
      * </pre>
      *
-     * <code>bytes id = 1;</code>
+     * <code>string id = 1;</code>
      * @return The id.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString getId() {
-      return id_;
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
     }
-
-    public static final int BATTERY_FIELD_NUMBER = 2;
-    private com.google.protobuf.ByteString battery_;
     /**
      * <pre>
-     * 电量，1个字节，取值范围0~100
+     * 定位卡唯一ID
      * </pre>
      *
-     * <code>bytes battery = 2;</code>
-     * @return The battery.
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString getBattery() {
-      return battery_;
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
-    public static final int TEMPERATURE_FIELD_NUMBER = 3;
-    private com.google.protobuf.ByteString temperature_;
+    public static final int SATELLITE_NUM_FIELD_NUMBER = 5;
+    private int satelliteNum_;
     /**
      * <pre>
-     * 温度，1个字节，取值范围-128~127
+     * 卫星数量
      * </pre>
      *
-     * <code>bytes temperature = 3;</code>
-     * @return The temperature.
+     * <code>int32 satellite_num = 5;</code>
+     * @return The satelliteNum.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString getTemperature() {
-      return temperature_;
+    public int getSatelliteNum() {
+      return satelliteNum_;
     }
 
-    public static final int BAROMETER_FIELD_NUMBER = 4;
+    public static final int HDOP_FIELD_NUMBER = 6;
+    private int hdop_;
+    /**
+     * <pre>
+     * 定位精度
+     * </pre>
+     *
+     * <code>int32 hdop = 6;</code>
+     * @return The hdop.
+     */
+    @java.lang.Override
+    public int getHdop() {
+      return hdop_;
+    }
+
+    public static final int GNSS_SPEED_FIELD_NUMBER = 7;
+    private float gnssSpeed_;
+    /**
+     * <pre>
+     * 速度
+     * </pre>
+     *
+     * <code>float gnss_speed = 7;</code>
+     * @return The gnssSpeed.
+     */
+    @java.lang.Override
+    public float getGnssSpeed() {
+      return gnssSpeed_;
+    }
+
+    public static final int BATTERY_LEVEL_FIELD_NUMBER = 8;
+    private int batteryLevel_;
+    /**
+     * <pre>
+     * 电池电量
+     * </pre>
+     *
+     * <code>int32 battery_level = 8;</code>
+     * @return The batteryLevel.
+     */
+    @java.lang.Override
+    public int getBatteryLevel() {
+      return batteryLevel_;
+    }
+
+    public static final int BAROMETER_FIELD_NUMBER = 13;
     private float barometer_;
     /**
      * <pre>
-     * 气压，单位hPa
+     * 高度，相对参考地面的高度，无效用小于-1000的值表示，典型值为-9999
      * </pre>
      *
-     * <code>float barometer = 4;</code>
+     * <code>float barometer = 13;</code>
      * @return The barometer.
      */
     @java.lang.Override
@@ -3197,29 +3203,14 @@ public final class LocationData {
       return barometer_;
     }
 
-    public static final int TIMESTAMP_FIELD_NUMBER = 5;
-    private int timestamp_;
-    /**
-     * <pre>
-     * 定位消息的时间戳，单位1秒，Unix Epoch Time, UTC时区
-     * </pre>
-     *
-     * <code>fixed32 timestamp = 5;</code>
-     * @return The timestamp.
-     */
-    @java.lang.Override
-    public int getTimestamp() {
-      return timestamp_;
-    }
-
-    public static final int LONGITUDE_FIELD_NUMBER = 6;
+    public static final int LONGITUDE_FIELD_NUMBER = 14;
     private int longitude_;
     /**
      * <pre>
-     * 经度，单位10e-7度, 范围（0~180），例如：坐标（119.324343，31.3141341），取值为：1193243430
+     * 经度
      * </pre>
      *
-     * <code>int32 longitude = 6;</code>
+     * <code>int32 longitude = 14;</code>
      * @return The longitude.
      */
     @java.lang.Override
@@ -3227,14 +3218,14 @@ public final class LocationData {
       return longitude_;
     }
 
-    public static final int LATITUDE_FIELD_NUMBER = 7;
+    public static final int LATITUDE_FIELD_NUMBER = 15;
     private int latitude_;
     /**
      * <pre>
-     * 纬度，单位10e-7度，范围（0~180），例如：坐标（119.324343， 31.3141341），取值为：313141341
+     * 纬度
      * </pre>
      *
-     * <code>int32 latitude = 7;</code>
+     * <code>int32 latitude = 15;</code>
      * @return The latitude.
      */
     @java.lang.Override
@@ -3242,89 +3233,14 @@ public final class LocationData {
       return latitude_;
     }
 
-    public static final int APP_VER_FIELD_NUMBER = 8;
-    private int appVer_;
-    /**
-     * <pre>
-     * App版本，例如：版本V1.2.3，取值为：(1 &lt;&lt; 24) | (2 &lt;&lt; 16) | (3 &lt;&lt; 8)
-     * </pre>
-     *
-     * <code>fixed32 app_ver = 8;</code>
-     * @return The appVer.
-     */
-    @java.lang.Override
-    public int getAppVer() {
-      return appVer_;
-    }
-
-    public static final int SATELLITE_NUM_FIELD_NUMBER = 9;
-    private com.google.protobuf.ByteString satelliteNum_;
-    /**
-     * <pre>
-     * 卫星数量
-     * </pre>
-     *
-     * <code>bytes satellite_num = 9;</code>
-     * @return The satelliteNum.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString getSatelliteNum() {
-      return satelliteNum_;
-    }
-
-    public static final int HDOP_FIELD_NUMBER = 10;
-    private com.google.protobuf.ByteString hdop_;
-    /**
-     * <pre>
-     * 定位精度
-     * </pre>
-     *
-     * <code>bytes hdop = 10;</code>
-     * @return The hdop.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString getHdop() {
-      return hdop_;
-    }
-
-    public static final int GNSS_SPEED_FIELD_NUMBER = 11;
-    private com.google.protobuf.ByteString gnssSpeed_;
-    /**
-     * <pre>
-     * 速度
-     * </pre>
-     *
-     * <code>bytes gnss_speed = 11;</code>
-     * @return The gnssSpeed.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString getGnssSpeed() {
-      return gnssSpeed_;
-    }
-
-    public static final int STATUS_FIELD_NUMBER = 12;
-    private com.google.protobuf.ByteString status_;
-    /**
-     * <pre>
-     * status[0] -&gt; bit0:运动，bit1:SOS，bit2:LTE信号，bit3:室内外，bit4:自由落体，bit5:快速跌落，bit6:充电，bit7:离开区域
-     * </pre>
-     *
-     * <code>bytes status = 12;</code>
-     * @return The status.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString getStatus() {
-      return status_;
-    }
-
-    public static final int UP_TIME_FIELD_NUMBER = 13;
+    public static final int UP_TIME_FIELD_NUMBER = 16;
     private int upTime_;
     /**
      * <pre>
-     * 开启定位后持续工作时间，单位1秒，重启后置0
+     * 上传定位消息的定位卡的持续工作时间，单位1秒
      * </pre>
      *
-     * <code>fixed32 up_time = 13;</code>
+     * <code>fixed32 up_time = 16;</code>
      * @return The upTime.
      */
     @java.lang.Override
@@ -3332,19 +3248,19 @@ public final class LocationData {
       return upTime_;
     }
 
-    public static final int SQUENCE_NUM_FIELD_NUMBER = 14;
-    private int squenceNum_;
+    public static final int TIMESTAMP_FIELD_NUMBER = 17;
+    private int timestamp_;
     /**
      * <pre>
-     * 数据顺序号，从1开始计数，每发送一个数据计数+1，重启后置1
+     * 时间戳，单位1秒，UTC时区
      * </pre>
      *
-     * <code>fixed32 squence_num = 14;</code>
-     * @return The squenceNum.
+     * <code>fixed32 timestamp = 17;</code>
+     * @return The timestamp.
      */
     @java.lang.Override
-    public int getSquenceNum() {
-      return squenceNum_;
+    public int getTimestamp() {
+      return timestamp_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -3361,47 +3277,35 @@ public final class LocationData {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!id_.isEmpty()) {
-        output.writeBytes(1, id_);
+      if (!getIdBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, id_);
       }
-      if (!battery_.isEmpty()) {
-        output.writeBytes(2, battery_);
+      if (satelliteNum_ != 0) {
+        output.writeInt32(5, satelliteNum_);
       }
-      if (!temperature_.isEmpty()) {
-        output.writeBytes(3, temperature_);
+      if (hdop_ != 0) {
+        output.writeInt32(6, hdop_);
+      }
+      if (gnssSpeed_ != 0F) {
+        output.writeFloat(7, gnssSpeed_);
+      }
+      if (batteryLevel_ != 0) {
+        output.writeInt32(8, batteryLevel_);
       }
       if (barometer_ != 0F) {
-        output.writeFloat(4, barometer_);
-      }
-      if (timestamp_ != 0) {
-        output.writeFixed32(5, timestamp_);
+        output.writeFloat(13, barometer_);
       }
       if (longitude_ != 0) {
-        output.writeInt32(6, longitude_);
+        output.writeInt32(14, longitude_);
       }
       if (latitude_ != 0) {
-        output.writeInt32(7, latitude_);
-      }
-      if (appVer_ != 0) {
-        output.writeFixed32(8, appVer_);
-      }
-      if (!satelliteNum_.isEmpty()) {
-        output.writeBytes(9, satelliteNum_);
-      }
-      if (!hdop_.isEmpty()) {
-        output.writeBytes(10, hdop_);
-      }
-      if (!gnssSpeed_.isEmpty()) {
-        output.writeBytes(11, gnssSpeed_);
-      }
-      if (!status_.isEmpty()) {
-        output.writeBytes(12, status_);
+        output.writeInt32(15, latitude_);
       }
       if (upTime_ != 0) {
-        output.writeFixed32(13, upTime_);
+        output.writeFixed32(16, upTime_);
       }
-      if (squenceNum_ != 0) {
-        output.writeFixed32(14, squenceNum_);
+      if (timestamp_ != 0) {
+        output.writeFixed32(17, timestamp_);
       }
       unknownFields.writeTo(output);
     }
@@ -3412,61 +3316,44 @@ public final class LocationData {
       if (size != -1) return size;
 
       size = 0;
-      if (!id_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, id_);
+      if (!getIdBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, id_);
       }
-      if (!battery_.isEmpty()) {
+      if (satelliteNum_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, battery_);
+          .computeInt32Size(5, satelliteNum_);
       }
-      if (!temperature_.isEmpty()) {
+      if (hdop_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, temperature_);
+          .computeInt32Size(6, hdop_);
+      }
+      if (gnssSpeed_ != 0F) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeFloatSize(7, gnssSpeed_);
+      }
+      if (batteryLevel_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(8, batteryLevel_);
       }
       if (barometer_ != 0F) {
         size += com.google.protobuf.CodedOutputStream
-          .computeFloatSize(4, barometer_);
-      }
-      if (timestamp_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeFixed32Size(5, timestamp_);
+          .computeFloatSize(13, barometer_);
       }
       if (longitude_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(6, longitude_);
+          .computeInt32Size(14, longitude_);
       }
       if (latitude_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(7, latitude_);
-      }
-      if (appVer_ != 0) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeFixed32Size(8, appVer_);
-      }
-      if (!satelliteNum_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(9, satelliteNum_);
-      }
-      if (!hdop_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(10, hdop_);
-      }
-      if (!gnssSpeed_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(11, gnssSpeed_);
-      }
-      if (!status_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(12, status_);
+          .computeInt32Size(15, latitude_);
       }
       if (upTime_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeFixed32Size(13, upTime_);
+          .computeFixed32Size(16, upTime_);
       }
-      if (squenceNum_ != 0) {
+      if (timestamp_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeFixed32Size(14, squenceNum_);
+          .computeFixed32Size(17, timestamp_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -3485,33 +3372,26 @@ public final class LocationData {
 
       if (!getId()
           .equals(other.getId())) return false;
-      if (!getBattery()
-          .equals(other.getBattery())) return false;
-      if (!getTemperature()
-          .equals(other.getTemperature())) return false;
+      if (getSatelliteNum()
+          != other.getSatelliteNum()) return false;
+      if (getHdop()
+          != other.getHdop()) return false;
+      if (java.lang.Float.floatToIntBits(getGnssSpeed())
+          != java.lang.Float.floatToIntBits(
+              other.getGnssSpeed())) return false;
+      if (getBatteryLevel()
+          != other.getBatteryLevel()) return false;
       if (java.lang.Float.floatToIntBits(getBarometer())
           != java.lang.Float.floatToIntBits(
               other.getBarometer())) return false;
-      if (getTimestamp()
-          != other.getTimestamp()) return false;
       if (getLongitude()
           != other.getLongitude()) return false;
       if (getLatitude()
           != other.getLatitude()) return false;
-      if (getAppVer()
-          != other.getAppVer()) return false;
-      if (!getSatelliteNum()
-          .equals(other.getSatelliteNum())) return false;
-      if (!getHdop()
-          .equals(other.getHdop())) return false;
-      if (!getGnssSpeed()
-          .equals(other.getGnssSpeed())) return false;
-      if (!getStatus()
-          .equals(other.getStatus())) return false;
       if (getUpTime()
           != other.getUpTime()) return false;
-      if (getSquenceNum()
-          != other.getSquenceNum()) return false;
+      if (getTimestamp()
+          != other.getTimestamp()) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -3525,33 +3405,26 @@ public final class LocationData {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + ID_FIELD_NUMBER;
       hash = (53 * hash) + getId().hashCode();
-      hash = (37 * hash) + BATTERY_FIELD_NUMBER;
-      hash = (53 * hash) + getBattery().hashCode();
-      hash = (37 * hash) + TEMPERATURE_FIELD_NUMBER;
-      hash = (53 * hash) + getTemperature().hashCode();
+      hash = (37 * hash) + SATELLITE_NUM_FIELD_NUMBER;
+      hash = (53 * hash) + getSatelliteNum();
+      hash = (37 * hash) + HDOP_FIELD_NUMBER;
+      hash = (53 * hash) + getHdop();
+      hash = (37 * hash) + GNSS_SPEED_FIELD_NUMBER;
+      hash = (53 * hash) + java.lang.Float.floatToIntBits(
+          getGnssSpeed());
+      hash = (37 * hash) + BATTERY_LEVEL_FIELD_NUMBER;
+      hash = (53 * hash) + getBatteryLevel();
       hash = (37 * hash) + BAROMETER_FIELD_NUMBER;
       hash = (53 * hash) + java.lang.Float.floatToIntBits(
           getBarometer());
-      hash = (37 * hash) + TIMESTAMP_FIELD_NUMBER;
-      hash = (53 * hash) + getTimestamp();
       hash = (37 * hash) + LONGITUDE_FIELD_NUMBER;
       hash = (53 * hash) + getLongitude();
       hash = (37 * hash) + LATITUDE_FIELD_NUMBER;
       hash = (53 * hash) + getLatitude();
-      hash = (37 * hash) + APP_VER_FIELD_NUMBER;
-      hash = (53 * hash) + getAppVer();
-      hash = (37 * hash) + SATELLITE_NUM_FIELD_NUMBER;
-      hash = (53 * hash) + getSatelliteNum().hashCode();
-      hash = (37 * hash) + HDOP_FIELD_NUMBER;
-      hash = (53 * hash) + getHdop().hashCode();
-      hash = (37 * hash) + GNSS_SPEED_FIELD_NUMBER;
-      hash = (53 * hash) + getGnssSpeed().hashCode();
-      hash = (37 * hash) + STATUS_FIELD_NUMBER;
-      hash = (53 * hash) + getStatus().hashCode();
       hash = (37 * hash) + UP_TIME_FIELD_NUMBER;
       hash = (53 * hash) + getUpTime();
-      hash = (37 * hash) + SQUENCE_NUM_FIELD_NUMBER;
-      hash = (53 * hash) + getSquenceNum();
+      hash = (37 * hash) + TIMESTAMP_FIELD_NUMBER;
+      hash = (53 * hash) + getTimestamp();
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -3685,33 +3558,25 @@ public final class LocationData {
       @java.lang.Override
       public Builder clear() {
         super.clear();
-        id_ = com.google.protobuf.ByteString.EMPTY;
+        id_ = "";
 
-        battery_ = com.google.protobuf.ByteString.EMPTY;
+        satelliteNum_ = 0;
 
-        temperature_ = com.google.protobuf.ByteString.EMPTY;
+        hdop_ = 0;
+
+        gnssSpeed_ = 0F;
+
+        batteryLevel_ = 0;
 
         barometer_ = 0F;
-
-        timestamp_ = 0;
 
         longitude_ = 0;
 
         latitude_ = 0;
 
-        appVer_ = 0;
-
-        satelliteNum_ = com.google.protobuf.ByteString.EMPTY;
-
-        hdop_ = com.google.protobuf.ByteString.EMPTY;
-
-        gnssSpeed_ = com.google.protobuf.ByteString.EMPTY;
-
-        status_ = com.google.protobuf.ByteString.EMPTY;
-
         upTime_ = 0;
 
-        squenceNum_ = 0;
+        timestamp_ = 0;
 
         return this;
       }
@@ -3740,19 +3605,15 @@ public final class LocationData {
       public com.example.lvpdr.data.LocationData.locationData buildPartial() {
         com.example.lvpdr.data.LocationData.locationData result = new com.example.lvpdr.data.LocationData.locationData(this);
         result.id_ = id_;
-        result.battery_ = battery_;
-        result.temperature_ = temperature_;
-        result.barometer_ = barometer_;
-        result.timestamp_ = timestamp_;
-        result.longitude_ = longitude_;
-        result.latitude_ = latitude_;
-        result.appVer_ = appVer_;
         result.satelliteNum_ = satelliteNum_;
         result.hdop_ = hdop_;
         result.gnssSpeed_ = gnssSpeed_;
-        result.status_ = status_;
+        result.batteryLevel_ = batteryLevel_;
+        result.barometer_ = barometer_;
+        result.longitude_ = longitude_;
+        result.latitude_ = latitude_;
         result.upTime_ = upTime_;
-        result.squenceNum_ = squenceNum_;
+        result.timestamp_ = timestamp_;
         onBuilt();
         return result;
       }
@@ -3801,20 +3662,24 @@ public final class LocationData {
 
       public Builder mergeFrom(com.example.lvpdr.data.LocationData.locationData other) {
         if (other == com.example.lvpdr.data.LocationData.locationData.getDefaultInstance()) return this;
-        if (other.getId() != com.google.protobuf.ByteString.EMPTY) {
-          setId(other.getId());
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          onChanged();
         }
-        if (other.getBattery() != com.google.protobuf.ByteString.EMPTY) {
-          setBattery(other.getBattery());
+        if (other.getSatelliteNum() != 0) {
+          setSatelliteNum(other.getSatelliteNum());
         }
-        if (other.getTemperature() != com.google.protobuf.ByteString.EMPTY) {
-          setTemperature(other.getTemperature());
+        if (other.getHdop() != 0) {
+          setHdop(other.getHdop());
+        }
+        if (other.getGnssSpeed() != 0F) {
+          setGnssSpeed(other.getGnssSpeed());
+        }
+        if (other.getBatteryLevel() != 0) {
+          setBatteryLevel(other.getBatteryLevel());
         }
         if (other.getBarometer() != 0F) {
           setBarometer(other.getBarometer());
-        }
-        if (other.getTimestamp() != 0) {
-          setTimestamp(other.getTimestamp());
         }
         if (other.getLongitude() != 0) {
           setLongitude(other.getLongitude());
@@ -3822,26 +3687,11 @@ public final class LocationData {
         if (other.getLatitude() != 0) {
           setLatitude(other.getLatitude());
         }
-        if (other.getAppVer() != 0) {
-          setAppVer(other.getAppVer());
-        }
-        if (other.getSatelliteNum() != com.google.protobuf.ByteString.EMPTY) {
-          setSatelliteNum(other.getSatelliteNum());
-        }
-        if (other.getHdop() != com.google.protobuf.ByteString.EMPTY) {
-          setHdop(other.getHdop());
-        }
-        if (other.getGnssSpeed() != com.google.protobuf.ByteString.EMPTY) {
-          setGnssSpeed(other.getGnssSpeed());
-        }
-        if (other.getStatus() != com.google.protobuf.ByteString.EMPTY) {
-          setStatus(other.getStatus());
-        }
         if (other.getUpTime() != 0) {
           setUpTime(other.getUpTime());
         }
-        if (other.getSquenceNum() != 0) {
-          setSquenceNum(other.getSquenceNum());
+        if (other.getTimestamp() != 0) {
+          setTimestamp(other.getTimestamp());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -3872,29 +3722,59 @@ public final class LocationData {
         return this;
       }
 
-      private com.google.protobuf.ByteString id_ = com.google.protobuf.ByteString.EMPTY;
+      private java.lang.Object id_ = "";
       /**
        * <pre>
-       * 6个字节，安卓用安卓id
+       * 定位卡唯一ID
        * </pre>
        *
-       * <code>bytes id = 1;</code>
+       * <code>string id = 1;</code>
        * @return The id.
        */
-      @java.lang.Override
-      public com.google.protobuf.ByteString getId() {
-        return id_;
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
        * <pre>
-       * 6个字节，安卓用安卓id
+       * 定位卡唯一ID
        * </pre>
        *
-       * <code>bytes id = 1;</code>
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * 定位卡唯一ID
+       * </pre>
+       *
+       * <code>string id = 1;</code>
        * @param value The id to set.
        * @return This builder for chaining.
        */
-      public Builder setId(com.google.protobuf.ByteString value) {
+      public Builder setId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -3905,10 +3785,10 @@ public final class LocationData {
       }
       /**
        * <pre>
-       * 6个字节，安卓用安卓id
+       * 定位卡唯一ID
        * </pre>
        *
-       * <code>bytes id = 1;</code>
+       * <code>string id = 1;</code>
        * @return This builder for chaining.
        */
       public Builder clearId() {
@@ -3917,95 +3797,195 @@ public final class LocationData {
         onChanged();
         return this;
       }
-
-      private com.google.protobuf.ByteString battery_ = com.google.protobuf.ByteString.EMPTY;
       /**
        * <pre>
-       * 电量，1个字节，取值范围0~100
+       * 定位卡唯一ID
        * </pre>
        *
-       * <code>bytes battery = 2;</code>
-       * @return The battery.
-       */
-      @java.lang.Override
-      public com.google.protobuf.ByteString getBattery() {
-        return battery_;
-      }
-      /**
-       * <pre>
-       * 电量，1个字节，取值范围0~100
-       * </pre>
-       *
-       * <code>bytes battery = 2;</code>
-       * @param value The battery to set.
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
        * @return This builder for chaining.
        */
-      public Builder setBattery(com.google.protobuf.ByteString value) {
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  
-        battery_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * 电量，1个字节，取值范围0~100
-       * </pre>
-       *
-       * <code>bytes battery = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearBattery() {
+  checkByteStringIsUtf8(value);
         
-        battery_ = getDefaultInstance().getBattery();
+        id_ = value;
         onChanged();
         return this;
       }
 
-      private com.google.protobuf.ByteString temperature_ = com.google.protobuf.ByteString.EMPTY;
+      private int satelliteNum_ ;
       /**
        * <pre>
-       * 温度，1个字节，取值范围-128~127
+       * 卫星数量
        * </pre>
        *
-       * <code>bytes temperature = 3;</code>
-       * @return The temperature.
+       * <code>int32 satellite_num = 5;</code>
+       * @return The satelliteNum.
        */
       @java.lang.Override
-      public com.google.protobuf.ByteString getTemperature() {
-        return temperature_;
+      public int getSatelliteNum() {
+        return satelliteNum_;
       }
       /**
        * <pre>
-       * 温度，1个字节，取值范围-128~127
+       * 卫星数量
        * </pre>
        *
-       * <code>bytes temperature = 3;</code>
-       * @param value The temperature to set.
+       * <code>int32 satellite_num = 5;</code>
+       * @param value The satelliteNum to set.
        * @return This builder for chaining.
        */
-      public Builder setTemperature(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  
-        temperature_ = value;
+      public Builder setSatelliteNum(int value) {
+        
+        satelliteNum_ = value;
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * 温度，1个字节，取值范围-128~127
+       * 卫星数量
        * </pre>
        *
-       * <code>bytes temperature = 3;</code>
+       * <code>int32 satellite_num = 5;</code>
        * @return This builder for chaining.
        */
-      public Builder clearTemperature() {
+      public Builder clearSatelliteNum() {
         
-        temperature_ = getDefaultInstance().getTemperature();
+        satelliteNum_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int hdop_ ;
+      /**
+       * <pre>
+       * 定位精度
+       * </pre>
+       *
+       * <code>int32 hdop = 6;</code>
+       * @return The hdop.
+       */
+      @java.lang.Override
+      public int getHdop() {
+        return hdop_;
+      }
+      /**
+       * <pre>
+       * 定位精度
+       * </pre>
+       *
+       * <code>int32 hdop = 6;</code>
+       * @param value The hdop to set.
+       * @return This builder for chaining.
+       */
+      public Builder setHdop(int value) {
+        
+        hdop_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 定位精度
+       * </pre>
+       *
+       * <code>int32 hdop = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearHdop() {
+        
+        hdop_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private float gnssSpeed_ ;
+      /**
+       * <pre>
+       * 速度
+       * </pre>
+       *
+       * <code>float gnss_speed = 7;</code>
+       * @return The gnssSpeed.
+       */
+      @java.lang.Override
+      public float getGnssSpeed() {
+        return gnssSpeed_;
+      }
+      /**
+       * <pre>
+       * 速度
+       * </pre>
+       *
+       * <code>float gnss_speed = 7;</code>
+       * @param value The gnssSpeed to set.
+       * @return This builder for chaining.
+       */
+      public Builder setGnssSpeed(float value) {
+        
+        gnssSpeed_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 速度
+       * </pre>
+       *
+       * <code>float gnss_speed = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearGnssSpeed() {
+        
+        gnssSpeed_ = 0F;
+        onChanged();
+        return this;
+      }
+
+      private int batteryLevel_ ;
+      /**
+       * <pre>
+       * 电池电量
+       * </pre>
+       *
+       * <code>int32 battery_level = 8;</code>
+       * @return The batteryLevel.
+       */
+      @java.lang.Override
+      public int getBatteryLevel() {
+        return batteryLevel_;
+      }
+      /**
+       * <pre>
+       * 电池电量
+       * </pre>
+       *
+       * <code>int32 battery_level = 8;</code>
+       * @param value The batteryLevel to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBatteryLevel(int value) {
+        
+        batteryLevel_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 电池电量
+       * </pre>
+       *
+       * <code>int32 battery_level = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearBatteryLevel() {
+        
+        batteryLevel_ = 0;
         onChanged();
         return this;
       }
@@ -4013,10 +3993,10 @@ public final class LocationData {
       private float barometer_ ;
       /**
        * <pre>
-       * 气压，单位hPa
+       * 高度，相对参考地面的高度，无效用小于-1000的值表示，典型值为-9999
        * </pre>
        *
-       * <code>float barometer = 4;</code>
+       * <code>float barometer = 13;</code>
        * @return The barometer.
        */
       @java.lang.Override
@@ -4025,10 +4005,10 @@ public final class LocationData {
       }
       /**
        * <pre>
-       * 气压，单位hPa
+       * 高度，相对参考地面的高度，无效用小于-1000的值表示，典型值为-9999
        * </pre>
        *
-       * <code>float barometer = 4;</code>
+       * <code>float barometer = 13;</code>
        * @param value The barometer to set.
        * @return This builder for chaining.
        */
@@ -4040,10 +4020,10 @@ public final class LocationData {
       }
       /**
        * <pre>
-       * 气压，单位hPa
+       * 高度，相对参考地面的高度，无效用小于-1000的值表示，典型值为-9999
        * </pre>
        *
-       * <code>float barometer = 4;</code>
+       * <code>float barometer = 13;</code>
        * @return This builder for chaining.
        */
       public Builder clearBarometer() {
@@ -4053,56 +4033,13 @@ public final class LocationData {
         return this;
       }
 
-      private int timestamp_ ;
-      /**
-       * <pre>
-       * 定位消息的时间戳，单位1秒，Unix Epoch Time, UTC时区
-       * </pre>
-       *
-       * <code>fixed32 timestamp = 5;</code>
-       * @return The timestamp.
-       */
-      @java.lang.Override
-      public int getTimestamp() {
-        return timestamp_;
-      }
-      /**
-       * <pre>
-       * 定位消息的时间戳，单位1秒，Unix Epoch Time, UTC时区
-       * </pre>
-       *
-       * <code>fixed32 timestamp = 5;</code>
-       * @param value The timestamp to set.
-       * @return This builder for chaining.
-       */
-      public Builder setTimestamp(int value) {
-        
-        timestamp_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * 定位消息的时间戳，单位1秒，Unix Epoch Time, UTC时区
-       * </pre>
-       *
-       * <code>fixed32 timestamp = 5;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearTimestamp() {
-        
-        timestamp_ = 0;
-        onChanged();
-        return this;
-      }
-
       private int longitude_ ;
       /**
        * <pre>
-       * 经度，单位10e-7度, 范围（0~180），例如：坐标（119.324343，31.3141341），取值为：1193243430
+       * 经度
        * </pre>
        *
-       * <code>int32 longitude = 6;</code>
+       * <code>int32 longitude = 14;</code>
        * @return The longitude.
        */
       @java.lang.Override
@@ -4111,10 +4048,10 @@ public final class LocationData {
       }
       /**
        * <pre>
-       * 经度，单位10e-7度, 范围（0~180），例如：坐标（119.324343，31.3141341），取值为：1193243430
+       * 经度
        * </pre>
        *
-       * <code>int32 longitude = 6;</code>
+       * <code>int32 longitude = 14;</code>
        * @param value The longitude to set.
        * @return This builder for chaining.
        */
@@ -4126,10 +4063,10 @@ public final class LocationData {
       }
       /**
        * <pre>
-       * 经度，单位10e-7度, 范围（0~180），例如：坐标（119.324343，31.3141341），取值为：1193243430
+       * 经度
        * </pre>
        *
-       * <code>int32 longitude = 6;</code>
+       * <code>int32 longitude = 14;</code>
        * @return This builder for chaining.
        */
       public Builder clearLongitude() {
@@ -4142,10 +4079,10 @@ public final class LocationData {
       private int latitude_ ;
       /**
        * <pre>
-       * 纬度，单位10e-7度，范围（0~180），例如：坐标（119.324343， 31.3141341），取值为：313141341
+       * 纬度
        * </pre>
        *
-       * <code>int32 latitude = 7;</code>
+       * <code>int32 latitude = 15;</code>
        * @return The latitude.
        */
       @java.lang.Override
@@ -4154,10 +4091,10 @@ public final class LocationData {
       }
       /**
        * <pre>
-       * 纬度，单位10e-7度，范围（0~180），例如：坐标（119.324343， 31.3141341），取值为：313141341
+       * 纬度
        * </pre>
        *
-       * <code>int32 latitude = 7;</code>
+       * <code>int32 latitude = 15;</code>
        * @param value The latitude to set.
        * @return This builder for chaining.
        */
@@ -4169,10 +4106,10 @@ public final class LocationData {
       }
       /**
        * <pre>
-       * 纬度，单位10e-7度，范围（0~180），例如：坐标（119.324343， 31.3141341），取值为：313141341
+       * 纬度
        * </pre>
        *
-       * <code>int32 latitude = 7;</code>
+       * <code>int32 latitude = 15;</code>
        * @return This builder for chaining.
        */
       public Builder clearLatitude() {
@@ -4182,240 +4119,13 @@ public final class LocationData {
         return this;
       }
 
-      private int appVer_ ;
-      /**
-       * <pre>
-       * App版本，例如：版本V1.2.3，取值为：(1 &lt;&lt; 24) | (2 &lt;&lt; 16) | (3 &lt;&lt; 8)
-       * </pre>
-       *
-       * <code>fixed32 app_ver = 8;</code>
-       * @return The appVer.
-       */
-      @java.lang.Override
-      public int getAppVer() {
-        return appVer_;
-      }
-      /**
-       * <pre>
-       * App版本，例如：版本V1.2.3，取值为：(1 &lt;&lt; 24) | (2 &lt;&lt; 16) | (3 &lt;&lt; 8)
-       * </pre>
-       *
-       * <code>fixed32 app_ver = 8;</code>
-       * @param value The appVer to set.
-       * @return This builder for chaining.
-       */
-      public Builder setAppVer(int value) {
-        
-        appVer_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * App版本，例如：版本V1.2.3，取值为：(1 &lt;&lt; 24) | (2 &lt;&lt; 16) | (3 &lt;&lt; 8)
-       * </pre>
-       *
-       * <code>fixed32 app_ver = 8;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearAppVer() {
-        
-        appVer_ = 0;
-        onChanged();
-        return this;
-      }
-
-      private com.google.protobuf.ByteString satelliteNum_ = com.google.protobuf.ByteString.EMPTY;
-      /**
-       * <pre>
-       * 卫星数量
-       * </pre>
-       *
-       * <code>bytes satellite_num = 9;</code>
-       * @return The satelliteNum.
-       */
-      @java.lang.Override
-      public com.google.protobuf.ByteString getSatelliteNum() {
-        return satelliteNum_;
-      }
-      /**
-       * <pre>
-       * 卫星数量
-       * </pre>
-       *
-       * <code>bytes satellite_num = 9;</code>
-       * @param value The satelliteNum to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSatelliteNum(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  
-        satelliteNum_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * 卫星数量
-       * </pre>
-       *
-       * <code>bytes satellite_num = 9;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearSatelliteNum() {
-        
-        satelliteNum_ = getDefaultInstance().getSatelliteNum();
-        onChanged();
-        return this;
-      }
-
-      private com.google.protobuf.ByteString hdop_ = com.google.protobuf.ByteString.EMPTY;
-      /**
-       * <pre>
-       * 定位精度
-       * </pre>
-       *
-       * <code>bytes hdop = 10;</code>
-       * @return The hdop.
-       */
-      @java.lang.Override
-      public com.google.protobuf.ByteString getHdop() {
-        return hdop_;
-      }
-      /**
-       * <pre>
-       * 定位精度
-       * </pre>
-       *
-       * <code>bytes hdop = 10;</code>
-       * @param value The hdop to set.
-       * @return This builder for chaining.
-       */
-      public Builder setHdop(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  
-        hdop_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * 定位精度
-       * </pre>
-       *
-       * <code>bytes hdop = 10;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearHdop() {
-        
-        hdop_ = getDefaultInstance().getHdop();
-        onChanged();
-        return this;
-      }
-
-      private com.google.protobuf.ByteString gnssSpeed_ = com.google.protobuf.ByteString.EMPTY;
-      /**
-       * <pre>
-       * 速度
-       * </pre>
-       *
-       * <code>bytes gnss_speed = 11;</code>
-       * @return The gnssSpeed.
-       */
-      @java.lang.Override
-      public com.google.protobuf.ByteString getGnssSpeed() {
-        return gnssSpeed_;
-      }
-      /**
-       * <pre>
-       * 速度
-       * </pre>
-       *
-       * <code>bytes gnss_speed = 11;</code>
-       * @param value The gnssSpeed to set.
-       * @return This builder for chaining.
-       */
-      public Builder setGnssSpeed(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  
-        gnssSpeed_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * 速度
-       * </pre>
-       *
-       * <code>bytes gnss_speed = 11;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearGnssSpeed() {
-        
-        gnssSpeed_ = getDefaultInstance().getGnssSpeed();
-        onChanged();
-        return this;
-      }
-
-      private com.google.protobuf.ByteString status_ = com.google.protobuf.ByteString.EMPTY;
-      /**
-       * <pre>
-       * status[0] -&gt; bit0:运动，bit1:SOS，bit2:LTE信号，bit3:室内外，bit4:自由落体，bit5:快速跌落，bit6:充电，bit7:离开区域
-       * </pre>
-       *
-       * <code>bytes status = 12;</code>
-       * @return The status.
-       */
-      @java.lang.Override
-      public com.google.protobuf.ByteString getStatus() {
-        return status_;
-      }
-      /**
-       * <pre>
-       * status[0] -&gt; bit0:运动，bit1:SOS，bit2:LTE信号，bit3:室内外，bit4:自由落体，bit5:快速跌落，bit6:充电，bit7:离开区域
-       * </pre>
-       *
-       * <code>bytes status = 12;</code>
-       * @param value The status to set.
-       * @return This builder for chaining.
-       */
-      public Builder setStatus(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  
-        status_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       * status[0] -&gt; bit0:运动，bit1:SOS，bit2:LTE信号，bit3:室内外，bit4:自由落体，bit5:快速跌落，bit6:充电，bit7:离开区域
-       * </pre>
-       *
-       * <code>bytes status = 12;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearStatus() {
-        
-        status_ = getDefaultInstance().getStatus();
-        onChanged();
-        return this;
-      }
-
       private int upTime_ ;
       /**
        * <pre>
-       * 开启定位后持续工作时间，单位1秒，重启后置0
+       * 上传定位消息的定位卡的持续工作时间，单位1秒
        * </pre>
        *
-       * <code>fixed32 up_time = 13;</code>
+       * <code>fixed32 up_time = 16;</code>
        * @return The upTime.
        */
       @java.lang.Override
@@ -4424,10 +4134,10 @@ public final class LocationData {
       }
       /**
        * <pre>
-       * 开启定位后持续工作时间，单位1秒，重启后置0
+       * 上传定位消息的定位卡的持续工作时间，单位1秒
        * </pre>
        *
-       * <code>fixed32 up_time = 13;</code>
+       * <code>fixed32 up_time = 16;</code>
        * @param value The upTime to set.
        * @return This builder for chaining.
        */
@@ -4439,10 +4149,10 @@ public final class LocationData {
       }
       /**
        * <pre>
-       * 开启定位后持续工作时间，单位1秒，重启后置0
+       * 上传定位消息的定位卡的持续工作时间，单位1秒
        * </pre>
        *
-       * <code>fixed32 up_time = 13;</code>
+       * <code>fixed32 up_time = 16;</code>
        * @return This builder for chaining.
        */
       public Builder clearUpTime() {
@@ -4452,45 +4162,45 @@ public final class LocationData {
         return this;
       }
 
-      private int squenceNum_ ;
+      private int timestamp_ ;
       /**
        * <pre>
-       * 数据顺序号，从1开始计数，每发送一个数据计数+1，重启后置1
+       * 时间戳，单位1秒，UTC时区
        * </pre>
        *
-       * <code>fixed32 squence_num = 14;</code>
-       * @return The squenceNum.
+       * <code>fixed32 timestamp = 17;</code>
+       * @return The timestamp.
        */
       @java.lang.Override
-      public int getSquenceNum() {
-        return squenceNum_;
+      public int getTimestamp() {
+        return timestamp_;
       }
       /**
        * <pre>
-       * 数据顺序号，从1开始计数，每发送一个数据计数+1，重启后置1
+       * 时间戳，单位1秒，UTC时区
        * </pre>
        *
-       * <code>fixed32 squence_num = 14;</code>
-       * @param value The squenceNum to set.
+       * <code>fixed32 timestamp = 17;</code>
+       * @param value The timestamp to set.
        * @return This builder for chaining.
        */
-      public Builder setSquenceNum(int value) {
+      public Builder setTimestamp(int value) {
         
-        squenceNum_ = value;
+        timestamp_ = value;
         onChanged();
         return this;
       }
       /**
        * <pre>
-       * 数据顺序号，从1开始计数，每发送一个数据计数+1，重启后置1
+       * 时间戳，单位1秒，UTC时区
        * </pre>
        *
-       * <code>fixed32 squence_num = 14;</code>
+       * <code>fixed32 timestamp = 17;</code>
        * @return This builder for chaining.
        */
-      public Builder clearSquenceNum() {
+      public Builder clearTimestamp() {
         
-        squenceNum_ = 0;
+        timestamp_ = 0;
         onChanged();
         return this;
       }
@@ -4556,10 +4266,20 @@ public final class LocationData {
      * 6个字节，设备唯一编号
      * </pre>
      *
-     * <code>bytes id = 1;</code>
+     * <code>string id = 1;</code>
      * @return The id.
      */
-    com.google.protobuf.ByteString getId();
+    java.lang.String getId();
+    /**
+     * <pre>
+     * 6个字节，设备唯一编号
+     * </pre>
+     *
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
 
     /**
      * <pre>
@@ -4594,7 +4314,7 @@ public final class LocationData {
       super(builder);
     }
     private heartBeat() {
-      id_ = com.google.protobuf.ByteString.EMPTY;
+      id_ = "";
       respondState_ = com.google.protobuf.ByteString.EMPTY;
     }
 
@@ -4629,8 +4349,9 @@ public final class LocationData {
               done = true;
               break;
             case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
 
-              id_ = input.readBytes();
+              id_ = s;
               break;
             }
             case 16: {
@@ -4676,18 +4397,49 @@ public final class LocationData {
     }
 
     public static final int ID_FIELD_NUMBER = 1;
-    private com.google.protobuf.ByteString id_;
+    private volatile java.lang.Object id_;
     /**
      * <pre>
      * 6个字节，设备唯一编号
      * </pre>
      *
-     * <code>bytes id = 1;</code>
+     * <code>string id = 1;</code>
      * @return The id.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString getId() {
-      return id_;
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * 6个字节，设备唯一编号
+     * </pre>
+     *
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     public static final int TIMESTAMP_FIELD_NUMBER = 2;
@@ -4734,8 +4486,8 @@ public final class LocationData {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!id_.isEmpty()) {
-        output.writeBytes(1, id_);
+      if (!getIdBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, id_);
       }
       if (timestamp_ != 0) {
         output.writeUInt32(2, timestamp_);
@@ -4752,9 +4504,8 @@ public final class LocationData {
       if (size != -1) return size;
 
       size = 0;
-      if (!id_.isEmpty()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, id_);
+      if (!getIdBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, id_);
       }
       if (timestamp_ != 0) {
         size += com.google.protobuf.CodedOutputStream
@@ -4935,7 +4686,7 @@ public final class LocationData {
       @java.lang.Override
       public Builder clear() {
         super.clear();
-        id_ = com.google.protobuf.ByteString.EMPTY;
+        id_ = "";
 
         timestamp_ = 0;
 
@@ -5018,8 +4769,9 @@ public final class LocationData {
 
       public Builder mergeFrom(com.example.lvpdr.data.LocationData.heartBeat other) {
         if (other == com.example.lvpdr.data.LocationData.heartBeat.getDefaultInstance()) return this;
-        if (other.getId() != com.google.protobuf.ByteString.EMPTY) {
-          setId(other.getId());
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          onChanged();
         }
         if (other.getTimestamp() != 0) {
           setTimestamp(other.getTimestamp());
@@ -5056,29 +4808,59 @@ public final class LocationData {
         return this;
       }
 
-      private com.google.protobuf.ByteString id_ = com.google.protobuf.ByteString.EMPTY;
+      private java.lang.Object id_ = "";
       /**
        * <pre>
        * 6个字节，设备唯一编号
        * </pre>
        *
-       * <code>bytes id = 1;</code>
+       * <code>string id = 1;</code>
        * @return The id.
        */
-      @java.lang.Override
-      public com.google.protobuf.ByteString getId() {
-        return id_;
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
        * <pre>
        * 6个字节，设备唯一编号
        * </pre>
        *
-       * <code>bytes id = 1;</code>
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * 6个字节，设备唯一编号
+       * </pre>
+       *
+       * <code>string id = 1;</code>
        * @param value The id to set.
        * @return This builder for chaining.
        */
-      public Builder setId(com.google.protobuf.ByteString value) {
+      public Builder setId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -5092,12 +4874,32 @@ public final class LocationData {
        * 6个字节，设备唯一编号
        * </pre>
        *
-       * <code>bytes id = 1;</code>
+       * <code>string id = 1;</code>
        * @return This builder for chaining.
        */
       public Builder clearId() {
         
         id_ = getDefaultInstance().getId();
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 6个字节，设备唯一编号
+       * </pre>
+       *
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        id_ = value;
         onChanged();
         return this;
       }
@@ -5285,17 +5087,15 @@ public final class LocationData {
       "titude_start\030\003 \001(\005\022\025\n\rlongitude_end\030\004 \001(" +
       "\005\022\024\n\014latitude_end\030\005 \001(\005\022*\n\004data\030\006 \003(\0132\034." +
       "MagneticDataByLine.cellData\032*\n\010cellData\022" +
-      "\021\n\tmagnitude\030\001 \001(\001\022\013\n\003seq\030\002 \001(\005\"\213\002\n\014loca" +
-      "tionData\022\n\n\002id\030\001 \001(\014\022\017\n\007battery\030\002 \001(\014\022\023\n" +
-      "\013temperature\030\003 \001(\014\022\021\n\tbarometer\030\004 \001(\002\022\021\n" +
-      "\ttimestamp\030\005 \001(\007\022\021\n\tlongitude\030\006 \001(\005\022\020\n\010l" +
-      "atitude\030\007 \001(\005\022\017\n\007app_ver\030\010 \001(\007\022\025\n\rsatell" +
-      "ite_num\030\t \001(\014\022\014\n\004hdop\030\n \001(\014\022\022\n\ngnss_spee" +
-      "d\030\013 \001(\014\022\016\n\006status\030\014 \001(\014\022\017\n\007up_time\030\r \001(\007" +
-      "\022\023\n\013squence_num\030\016 \001(\007\"A\n\theartBeat\022\n\n\002id" +
-      "\030\001 \001(\014\022\021\n\ttimestamp\030\002 \001(\r\022\025\n\rrespond_sta" +
-      "te\030\003 \001(\014B\030\n\026com.example.lvpdr.datab\006prot" +
-      "o3"
+      "\021\n\tmagnitude\030\001 \001(\001\022\013\n\003seq\030\002 \001(\005\"\306\001\n\014loca" +
+      "tionData\022\n\n\002id\030\001 \001(\t\022\025\n\rsatellite_num\030\005 " +
+      "\001(\005\022\014\n\004hdop\030\006 \001(\005\022\022\n\ngnss_speed\030\007 \001(\002\022\025\n" +
+      "\rbattery_level\030\010 \001(\005\022\021\n\tbarometer\030\r \001(\002\022" +
+      "\021\n\tlongitude\030\016 \001(\005\022\020\n\010latitude\030\017 \001(\005\022\017\n\007" +
+      "up_time\030\020 \001(\007\022\021\n\ttimestamp\030\021 \001(\007\"A\n\thear" +
+      "tBeat\022\n\n\002id\030\001 \001(\t\022\021\n\ttimestamp\030\002 \001(\r\022\025\n\r" +
+      "respond_state\030\003 \001(\014B\030\n\026com.example.lvpdr" +
+      ".datab\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -5324,7 +5124,7 @@ public final class LocationData {
     internal_static_locationData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_locationData_descriptor,
-        new java.lang.String[] { "Id", "Battery", "Temperature", "Barometer", "Timestamp", "Longitude", "Latitude", "AppVer", "SatelliteNum", "Hdop", "GnssSpeed", "Status", "UpTime", "SquenceNum", });
+        new java.lang.String[] { "Id", "SatelliteNum", "Hdop", "GnssSpeed", "BatteryLevel", "Barometer", "Longitude", "Latitude", "UpTime", "Timestamp", });
     internal_static_heartBeat_descriptor =
       getDescriptor().getMessageTypes().get(3);
     internal_static_heartBeat_fieldAccessorTable = new

@@ -14,7 +14,10 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.os.BatteryManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.telephony.CellInfo;
 import android.telephony.CellInfoLte;
 import android.telephony.CellSignalStrengthLte;
@@ -54,6 +57,8 @@ import com.example.lvpdr.ui.chart.ChartFragment;
 import com.example.lvpdr.ui.map.MapViewModel;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.mapbox.geojson.Point;
+import com.mapbox.geojson.Polygon;
+import com.mapbox.turf.TurfJoins;
 
 import java.security.cert.PolicyNode;
 import java.util.ArrayList;
@@ -136,6 +141,9 @@ public class HomeFragment extends Fragment implements SensorEventListener {
 
     private ArrayList<String> magneticCollected = new ArrayList<>();
 
+    private String mAndroidId;
+    private BatteryManager mBatteryManager;
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -148,10 +156,14 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         coreAlgorithm = new CoreAlgorithm(20, 1.7, 0.4f);
-  //      mSender = new Sender("47.117.168.13", 31327);
- //       mSender.start();
+        mSender = new Sender("47.117.168.13", 31327);
+        mSender.start();
  //       mRedisClient = new RedisClient();
 //        mRedisClient.
+        mAndroidId = Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+        mBatteryManager = (BatteryManager) mActivity.getSystemService(Context.BATTERY_SERVICE);
+
+
         View view = getView();
         if (view != null) {
             mActivity = getActivity();
@@ -283,6 +295,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     public void stopLocation() {
         super.onPause();
         mSensorManager.unregisterListener(this);
+        locationTrack.stopListener();
         if(timer != null)
             timer.cancel ();
 
@@ -315,8 +328,16 @@ public class HomeFragment extends Fragment implements SensorEventListener {
   //                          }
 
                             if (locationTrack.canGetLocation()) {
-                                double longitude = locationTrack.getLocation().getLongitude();
-                                double latitude = locationTrack.getLocation().getLatitude();
+                                Location loc = locationTrack.getLocation();
+                                double longitude = loc.getLongitude();
+                                double latitude = loc.getLatitude();
+
+                                //Todo:给出区域坐标
+//                                if(!TurfJoins.inside(Point.fromLngLat(longitude, latitude), Polygon.fromLngLats(null))) {
+//                                    //定位区域外
+//                                    stopLocation();
+//                                    return;
+//                                }
 
                                 String sLon = String.format("%.5f", longitude);
                                 TextView text = (TextView) getView().findViewById(R.id.gpsx);
@@ -331,19 +352,42 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                                 if(currentCoord == null){
                                     currentCoord = Point.fromLngLat(longitude, latitude);
                                 }
-                                currentCoord = coreAlgorithm.fusionLocation(currentCoord, Point.fromLngLat(longitude, latitude), coordCoefficient);
 
-                                String sFusionLon = String.format("%.5f", currentCoord.longitude());
-                                text = (TextView) getView().findViewById(R.id.fusionx);
-                                text.setText(sFusionLon);
 
-                                String sFusionLat = String.format("%.5f", currentCoord.latitude());
-                                text = (TextView) getView().findViewById(R.id.fusiony);
-                                text.setText(sFusionLat);
+                                if(mSender.isConnected()){
+                                    // 发送点位数据
+                                    LocationData.locationData locationData =  LocationData.locationData.newBuilder()
+                                            .setId(mAndroidId)
+                                            .setSatelliteNum(0)
+                                            .setHdop(0)
+                                            .setBatteryLevel(mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY))
+                                            .setGnssSpeed(loc.getSpeed())
+                                            .setBarometer(0.0f)
+                                            .setUpTime(0)
+                                            .setLatitude((int)(latitude * 10000000))
+                                            .setLongitude((int)(longitude * 10000000))
+                                            .setTimestamp((int)(System.currentTimeMillis() / 1000))
+                                            .build();
+                                    mSender.send(locationData.toByteArray());
+                                }
 
-                                fusionCoords.add(currentCoord);
-                                mapViewModel.addPointInMapSource("original-location", originalCoords);
-                                mapViewModel.addPointInMapSource("fusion-location", fusionCoords);
+
+                                // Todo:第一版室外先用纯卫星定位
+
+
+//                                currentCoord = coreAlgorithm.fusionLocation(currentCoord, Point.fromLngLat(longitude, latitude), coordCoefficient);
+//
+//                                String sFusionLon = String.format("%.5f", currentCoord.longitude());
+//                                text = (TextView) getView().findViewById(R.id.fusionx);
+//                                text.setText(sFusionLon);
+//
+//                                String sFusionLat = String.format("%.5f", currentCoord.latitude());
+//                                text = (TextView) getView().findViewById(R.id.fusiony);
+//                                text.setText(sFusionLat);
+//
+//                                fusionCoords.add(currentCoord);
+//                                mapViewModel.addPointInMapSource("original-location", originalCoords);
+//                                mapViewModel.addPointInMapSource("fusion-location", fusionCoords);
 
                             } else {
                                 locationTrack.showSettingsAlert();
