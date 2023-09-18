@@ -14,6 +14,7 @@ import com.example.lvpdr.core.LocationTrack;
 import com.example.lvpdr.ui.chart.ChartFragment;
 import com.example.lvpdr.ui.home.HomeFragment;
 import com.example.lvpdr.ui.map.MapFragment;
+import com.example.lvpdr.ui.setting.SettingFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.annotation.NonNull;
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     public NavigationView navigationView;
     public Fragment mContent;
     BottomNavigationView navView;
+    SettingFragment settingFragment = new SettingFragment();
     HomeFragment homeFragment = new HomeFragment();
     ChartFragment chartFragment = new ChartFragment();
     MapFragment mapFragment = new MapFragment();
@@ -52,8 +54,8 @@ public class MainActivity extends AppCompatActivity {
         locationTrack = new LocationTrack(MainActivity.this);
         setContentView(R.layout.activity_main);
         navView = findViewById(R.id.nav_view);
-        getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment_activity_main, homeFragment).commit();
-        mContent = homeFragment;
+        getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment_activity_main, settingFragment).commit();
+        mContent = settingFragment;
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE}, locationRequestCode);
@@ -65,6 +67,11 @@ public class MainActivity extends AppCompatActivity {
         navView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                if(item.getItemId() == R.id.navigation_settings){
+                    //getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment_activity_main, homeFragment).commit();
+                    switchFragment(mContent, settingFragment);
+                    return true;
+                }
                 if(item.getItemId() == R.id.navigation_home){
                     //getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment_activity_main, homeFragment).commit();
                     switchFragment(mContent, homeFragment);

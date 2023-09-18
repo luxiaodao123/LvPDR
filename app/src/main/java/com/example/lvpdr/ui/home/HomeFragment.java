@@ -1,8 +1,6 @@
 package com.example.lvpdr.ui.home;
 
 
-import static androidx.core.content.ContextCompat.getSystemService;
-
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -156,17 +154,15 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         coreAlgorithm = new CoreAlgorithm(20, 1.7, 0.4f);
-        mSender = new Sender("47.117.168.13", 31327);
-        mSender.start();
- //       mRedisClient = new RedisClient();
+//        mSender = new Sender("47.117.168.13", 31327);
+//        mSender.start();
+        mRedisClient = new RedisClient();
 //        mRedisClient.
-        mAndroidId = Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
-        mBatteryManager = (BatteryManager) mActivity.getSystemService(Context.BATTERY_SERVICE);
-
 
         View view = getView();
         if (view != null) {
             mActivity = getActivity();
+            mBatteryManager = (BatteryManager) mActivity.getSystemService(Context.BATTERY_SERVICE);
             mSensorManager = (SensorManager) mActivity.getSystemService(Context.SENSOR_SERVICE);
             mWindowManager = mActivity.getWindow().getWindowManager();
             assert mSensorManager != null;
@@ -225,9 +221,10 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                         magInfo.put("Zone_0001", listString);
                         mRedisClient.hset("zoneInfo", magInfo);
                         magneticCollected.clear();
-                    } else {
+                    } else
+                    {
                         AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
-                        builder.setTitle("Title");
+                        builder.setTitle("采集区域编号");
 
                         // Set up the input
                         final EditText input = new EditText(mActivity);
@@ -236,13 +233,13 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                         builder.setView(input);
 
                         // Set up the buttons
-                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 m_Text = input.getText().toString();
                             }
                         });
-                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.cancel();
@@ -255,7 +252,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                         _isCollect = true;
                         String res = null;
                         try {
-                            res = mRedisClient.hget("zoneInfo", "Zone_0001");
+                            res = mRedisClient.hget("zoneInfo", m_Text);
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
@@ -354,22 +351,22 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                                 }
 
 
-                                if(mSender.isConnected()){
-                                    // 发送点位数据
-                                    LocationData.locationData locationData =  LocationData.locationData.newBuilder()
-                                            .setId(mAndroidId)
-                                            .setSatelliteNum(0)
-                                            .setHdop(0)
-                                            .setBatteryLevel(mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY))
-                                            .setGnssSpeed(loc.getSpeed())
-                                            .setBarometer(0.0f)
-                                            .setUpTime(0)
-                                            .setLatitude((int)(latitude * 10000000))
-                                            .setLongitude((int)(longitude * 10000000))
-                                            .setTimestamp((int)(System.currentTimeMillis() / 1000))
-                                            .build();
-                                    mSender.send(locationData.toByteArray());
-                                }
+//                                if(mSender.isConnected()){
+//                                    // 发送点位数据
+//                                    LocationData.locationData locationData =  LocationData.locationData.newBuilder()
+//                                            .setId(mAndroidId)
+//                                            .setSatelliteNum(0)
+//                                            .setHdop(0)
+//                                            .setBatteryLevel(mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY))
+//                                            .setGnssSpeed(loc.getSpeed())
+//                                            .setBarometer(0.0f)
+//                                            .setUpTime(0)
+//                                            .setLatitude((int)(latitude * 10000000))
+//                                            .setLongitude((int)(longitude * 10000000))
+//                                            .setTimestamp((int)(System.currentTimeMillis() / 1000))
+//                                            .build();
+//                                    mSender.send(locationData.toByteArray());
+//                                }
 
 
                                 // Todo:第一版室外先用纯卫星定位

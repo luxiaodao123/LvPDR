@@ -17,6 +17,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.util.Arrays;
+
+import javax.security.auth.callback.Callback;
 
 
 public class Sender extends Thread{
@@ -115,6 +118,71 @@ public class Sender extends Thread{
         result[2] = (byte) ((i >> 8) & 0xFF);
         result[3] = (byte) (i  & 0xFF);
         return result;
+    }
+
+    private byte[] hdlcEncode(byte[] msg){
+        int msgLen = msg.length;
+        byte[] encodedFrame = new byte[msgLen * 2 + 2];
+        encodedFrame[0] = 0x7e;
+        int frameEnd = 1;
+        int index = 0;
+
+        for(byte bt: msg){
+            if(bt == 0x7e){
+                encodedFrame[frameEnd] = 0x7d;
+                frameEnd += 1;
+                encodedFrame[frameEnd] = 0x5e;
+            }else if(bt == 0x7d){
+                encodedFrame[frameEnd] = 0x7d;
+                frameEnd += 1;
+                encodedFrame[frameEnd] = 0x5d;
+            }else {
+                encodedFrame[frameEnd] = msg[index];
+                frameEnd += 1;
+            }
+            index++;
+        }
+
+        encodedFrame[frameEnd] = 0x7e;
+        frameEnd += 1;
+        return Arrays.copyOfRange(encodedFrame, 0, frameEnd);
+    }
+
+    private void hdlcDecode(byte[] msg, Callback callback){
+        int state = 0;
+        int frameEnd = 0;
+        int msgLen = msg.length;
+        byte[] frame = new byte[msgLen];
+        for( int srcIdx = 0; srcIdx < msgLen; srcIdx++){
+            if(msg[srcIdx] == 0x7e){
+                if(state == 0) {
+                    state = 1;
+                    continue;
+                } else if (state == 1) {
+                    try{
+                        //callback.
+                    }catch (Exception e){
+                        Log.e("Sender", e.toString());
+                    }
+                    frame = new byte[msgLen];
+                    state = 0;
+                    frameEnd = 0;
+                }
+            } else if (msg[srcIdx] == 0x7d && srcIdx + 1 < msgLen) {
+                if (msg[srcIdx + 1] == 0x5e){
+                    frame[frameEnd] = 0x7e;
+                    ++frameEnd;
+                    ++srcIdx;
+                } else if (msg[srcIdx + 1] == 0x5d) {
+                    frame[frameEnd] = 0x7d;
+                    ++frameEnd;
+                    ++srcIdx;
+                } else {
+                    frame[frameEnd] = msg[srcIdx];
+                    ++frameEnd;
+                }
+            }
+        }
     }
 
     @Override

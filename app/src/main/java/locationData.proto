@@ -36,6 +36,10 @@ message locationData {
     fixed32 timestamp=17;					// 时间戳，单位1秒，UTC时区
 }
 
+message BindingInfo {
+    string id = 1;                          // 定位卡唯一ID
+}
+
 message heartBeat {
     string id = 1;                      // 6个字节，设备唯一编号
     uint32  timestamp = 2;              // 时间戳，单位1秒，UTC时区
