@@ -3,6 +3,8 @@ package com.example.lvpdr;
 
 import android.util.Log;
 
+import com.example.lvpdr.core.LocationTrack;
+import com.example.lvpdr.core.model.LocationWithDistance;
 import com.example.lvpdr.data.cache.RedisCache;
 import com.mapbox.geojson.Point;
 import com.mapbox.turf.TurfClassification;
@@ -35,12 +37,16 @@ public class CoreAlgorithm {
     private double sampleRate;
     private double height;
     private double K;  //Coefficient (may need to be adjusted for different individuals)
+    private static CoreAlgorithm singleton = null;
 
     public CoreAlgorithm(double sampleRate, double height, double K) {
         this.sampleRate = sampleRate;
         this.height = height;
         this.K = K;
+        singleton = this;
     }
+
+    public static CoreAlgorithm getInstance() {return singleton;}
 
     final public class Matrix {
         private final int M;             // number of rows
@@ -321,10 +327,10 @@ public class CoreAlgorithm {
             /*
                 Correction Step:
                 S = (H * P * HT) + R       ← HT is the matrix transpose of H
-                K = P * HT * S-1       ← S-1 is the matrix inverse of S
+                K = P * HT * S-1           ← S-1 is the matrix inverse of S
                 y = m - (H * x)
                 x = x + (K * y)
-                P = (I - (K * H)) * P       ← I is the Identity matrix
+                P = (I - (K * H)) * P      ← I is the Identity matrix
             */
             Matrix S = Matrix_H.times(P).times(Matrix_H.transpose()).plus(Matrix_R);
             Matrix K = P.times(Matrix_H.transpose()).times(S.inverse());
@@ -488,6 +494,14 @@ public class CoreAlgorithm {
         return butterworth.filter(v);
     }
 
+    public float[] lowPass(float[] input, float[] output) {
+        if (output == null) return input;
+        for (int i = 0; i < input.length; i++) {
+            output[i] = output[i] + 0.25f * (input[i] - output[i]);
+        }
+        return output;
+    }
+
     public double calculateCosDistance(ArrayList<Float> l1, ArrayList<Float> l2) {
         double A = 0, B = 0, AB = 0;
         for (int i = 0; i < l2.size(); i++) {
@@ -525,5 +539,104 @@ public class CoreAlgorithm {
     //Todo: 切换算法
     private boolean isInSwitchingArea(Point p){
         return false;
+    }
+
+    private static String calculateWeightedAverageKDistanceLocations(ArrayList<LocationWithDistance> locationWithDistance_Results_List, int K) {
+        double LocationWeight = 0.0f;
+        double sumWeights = 0.0f;
+        double WeightedSumX = 0.0f;
+        double WeightedSumY = 0.0f;
+
+        String[] LocationArray = new String[2];
+        float x, y;
+
+        int K_Min = K < locationWithDistance_Results_List.size() ? K : locationWithDistance_Results_List.size();
+
+        // Calculate the weighted sum of X and Y
+        for (int i = 0; i < K_Min; ++i) {
+            if (locationWithDistance_Results_List.get(i).getDistance() != 0.0) {
+                LocationWeight = 100000 / Math.pow(locationWithDistance_Results_List.get(i).getDistance(), 2);
+            } else {
+                LocationWeight = 100;
+            }
+            LocationArray = locationWithDistance_Results_List.get(i).getLocation().split(" ");
+
+            try {
+                x = Float.valueOf(LocationArray[0].trim()).floatValue();
+                y = Float.valueOf(LocationArray[1].trim()).floatValue();
+            } catch (Exception e) {
+                return null;
+            }
+
+            sumWeights += LocationWeight;
+            WeightedSumX += LocationWeight * x;
+            WeightedSumY += LocationWeight * y;
+        }
+
+        WeightedSumX /= sumWeights;
+        WeightedSumY /= sumWeights;
+
+        return WeightedSumX + " " + WeightedSumY;
+    }
+
+    private static String calculateAverageKDistanceLocations(ArrayList<LocationWithDistance> locationWithDistance_Results_List, int K) {
+        float sumX = 0.0f;
+        float sumY = 0.0f;
+
+        String[] LocationArray;
+        float x, y;
+
+        int K_Min = K < locationWithDistance_Results_List.size() ? K : locationWithDistance_Results_List.size();
+
+        // Calculate the sum of X and Y
+        for (int i = 0; i < K_Min; ++i) {
+            LocationArray = locationWithDistance_Results_List.get(i).getLocation().split(" ");
+
+            try {
+                x = Float.valueOf(LocationArray[0].trim()).floatValue();
+                y = Float.valueOf(LocationArray[1].trim()).floatValue();
+            } catch (Exception e) {
+                return null;
+            }
+
+            sumX += x;
+            sumY += y;
+        }
+
+        // Calculate the average
+        sumX /= K_Min;
+        sumY /= K_Min;
+
+        return sumX + " " + sumY;
+    }
+
+    private static String calculateWeightedAverageProbabilityLocations(ArrayList<LocationWithDistance> locationWithDistance_Results_List) {
+        double sumProbabilities = 0.0f;
+        double WeightedSumX = 0.0f;
+        double WeightedSumY = 0.0f;
+        double NP;
+        float x, y;
+        String[] LocationArray;
+
+        for (int i = 0; i < locationWithDistance_Results_List.size(); ++i)
+            sumProbabilities += locationWithDistance_Results_List.get(i).getDistance();
+
+        for (int i = 0; i < locationWithDistance_Results_List.size(); ++i) {
+            LocationArray = locationWithDistance_Results_List.get(i).getLocation().split(" ");
+
+            try {
+                x = Float.valueOf(LocationArray[0].trim()).floatValue();
+                y = Float.valueOf(LocationArray[1].trim()).floatValue();
+            } catch (Exception e) {
+                return null;
+            }
+
+            NP = locationWithDistance_Results_List.get(i).getDistance() / sumProbabilities;
+
+            WeightedSumX += (x * NP);
+            WeightedSumY += (y * NP);
+        }
+
+        return WeightedSumX + " " + WeightedSumY;
     }
 }

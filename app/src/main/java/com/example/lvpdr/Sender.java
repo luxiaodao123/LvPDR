@@ -13,10 +13,14 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import javax.security.auth.callback.Callback;
@@ -26,6 +30,7 @@ public class Sender extends Thread{
     private static final String TAG = "Sender";
     private static Sender singleton = null;
     private Socket mSocket;
+    private DatagramSocket mUdpSocket;
     private SocketAddress mSocketAddress;
     private String mHost;
     private int mPort;
@@ -38,11 +43,16 @@ public class Sender extends Thread{
     private boolean mRun = false;
 
 
-    public Sender(String host, int port){
+    public Sender(String host, int port, boolean isTcp) throws SocketException {
         if(singleton != null)
             return;
         this.mHost = host;
         this.mPort = port;
+        if(isTcp == false) {
+            mUdpSocket = new DatagramSocket();
+            _isConnected = true;
+        }
+
         singleton = this;
     }
 
@@ -92,16 +102,25 @@ public class Sender extends Thread{
         }
     }
 
-    public void send(byte[] data){
+    public void send(byte[] data, boolean isTcp){
         try {
-
             Thread thread = new Thread(){
                 public void run(){
-                    try{
-                        Sender.getInstance().mOutputStream.write(data);
-                    }catch (Exception e){
-                        Log.e(TAG, e.toString());
+                    if(isTcp == true) {
+                        try {
+                            Sender.getInstance().mOutputStream.write(data);
+                        } catch (Exception e) {
+                            Log.e(TAG, e.toString());
+                        }
+                    } else {
+                        try {
+                            DatagramPacket sendPacket = new DatagramPacket(data, data.length, InetAddress.getByName(mHost), mPort);
+                            mUdpSocket.send(sendPacket);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
+
                 }
             };
             thread.start();

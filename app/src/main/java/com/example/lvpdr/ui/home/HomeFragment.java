@@ -53,11 +53,13 @@ import com.example.lvpdr.data.cache.RedisCache;
 import com.example.lvpdr.data.cache.RedisClient;
 import com.example.lvpdr.ui.chart.ChartFragment;
 import com.example.lvpdr.ui.map.MapViewModel;
+import com.example.lvpdr.ui.setting.SettingFragment;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.mapbox.geojson.Point;
 import com.mapbox.geojson.Polygon;
 import com.mapbox.turf.TurfJoins;
 
+import java.net.SocketException;
 import java.security.cert.PolicyNode;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -153,8 +155,13 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        mAndroidId = SettingFragment.mAndroidId;
         coreAlgorithm = new CoreAlgorithm(20, 1.7, 0.4f);
-//        mSender = new Sender("47.117.168.13", 31327);
+        try {
+            mSender = new Sender("47.117.168.13", 31337, false);
+        } catch (SocketException e) {
+            throw new RuntimeException(e);
+        }
 //        mSender.start();
         mRedisClient = new RedisClient();
 //        mRedisClient.
@@ -299,7 +306,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     }
 
     public void startLocation() {
-        if(mapViewModel== null) mapViewModel = MapViewModel.getInstance();
+        if(mapViewModel == null) mapViewModel = MapViewModel.getInstance();
         super.onResume();
         if (i == 1) {
             timer = new Timer();
@@ -326,6 +333,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
 
                             if (locationTrack.canGetLocation()) {
                                 Location loc = locationTrack.getLocation();
+                                if(loc == null) return;
                                 double longitude = loc.getLongitude();
                                 double latitude = loc.getLatitude();
 
@@ -351,22 +359,22 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                                 }
 
 
-//                                if(mSender.isConnected()){
-//                                    // 发送点位数据
-//                                    LocationData.locationData locationData =  LocationData.locationData.newBuilder()
-//                                            .setId(mAndroidId)
-//                                            .setSatelliteNum(0)
-//                                            .setHdop(0)
-//                                            .setBatteryLevel(mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY))
-//                                            .setGnssSpeed(loc.getSpeed())
-//                                            .setBarometer(0.0f)
-//                                            .setUpTime(0)
-//                                            .setLatitude((int)(latitude * 10000000))
-//                                            .setLongitude((int)(longitude * 10000000))
-//                                            .setTimestamp((int)(System.currentTimeMillis() / 1000))
-//                                            .build();
-//                                    mSender.send(locationData.toByteArray());
-//                                }
+                                if(mSender.isConnected()){
+                                    // 发送点位数据
+                                    LocationData.locationData locationData =  LocationData.locationData.newBuilder()
+                                            .setId(mAndroidId)
+                                            .setSatelliteNum(0)
+                                            .setHdop(0)
+                                            .setBatteryLevel(mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY))
+                                            .setGnssSpeed(loc.getSpeed())
+                                            .setBarometer(0.0f)
+                                            .setUpTime(0)
+                                            .setLatitude((int)(latitude * 10000000))
+                                            .setLongitude((int)(longitude * 10000000))
+                                            .setTimestamp((int)(System.currentTimeMillis() / 1000))
+                                            .build();
+                                    mSender.send(locationData.toByteArray() ,false);
+                                }
 
 
                                 // Todo:第一版室外先用纯卫星定位
@@ -383,7 +391,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
 //                                text.setText(sFusionLat);
 //
 //                                fusionCoords.add(currentCoord);
-//                                mapViewModel.addPointInMapSource("original-location", originalCoords);
+                                mapViewModel.addPointInMapSource("original-location", originalCoords);
 //                                mapViewModel.addPointInMapSource("fusion-location", fusionCoords);
 
                             } else {
@@ -482,18 +490,18 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                         avgMag += lastButterWorthMagArr.get(i) / lastButterWorthMagArr.size();
                     }
                     lastButterWorthMagArr.clear();
-                    if(mSender.isConnected()){
-                        // 发送点位数据
-                        LocationData.MagneticData locationData =  LocationData.MagneticData.newBuilder()
-                                .setZoneId(1)
-                                .setMagnitude(avgMag)
-                                .setLatitude((int)(currentLat * 10000000))
-                                .setLongitude((int)(currentLon * 10000000))
-                                .setTimestamp((int)(currentTime / 1000))
-                                .build();
-//                        mSender.send(locationData.toByteArray());
-                        magneticCollected.add(Base64.getEncoder().encodeToString(locationData.toByteArray()));
-                    }
+//                    if(mSender.isConnected()){
+//                        // 发送点位数据
+//                        LocationData.MagneticData locationData =  LocationData.MagneticData.newBuilder()
+//                                .setZoneId(1)
+//                                .setMagnitude(avgMag)
+//                                .setLatitude((int)(currentLat * 10000000))
+//                                .setLongitude((int)(currentLon * 10000000))
+//                                .setTimestamp((int)(currentTime / 1000))
+//                                .build();
+////                        mSender.send(locationData.toByteArray());
+//                        magneticCollected.add(Base64.getEncoder().encodeToString(locationData.toByteArray()));
+//                    }
                 }
             }
             TextView text = (TextView) getView().findViewById(R.id.stepLength);

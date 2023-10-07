@@ -140,12 +140,50 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.766" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/startEndButton"
+        android:layout_width="150dp"
+        android:layout_height="47dp"
+        android:background="@color/purple_700"
+        android:text="开始定位"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.916" />
 
-    <Spinner
-        android:id="@+id/spinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:ignore="MissingConstraints" />
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/bindingButton"
+        android:layout_width="150dp"
+        android:layout_height="47dp"
+        android:background="@color/purple_700"
+        android:text="绑定人员"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.616" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/frequencButton"
+        android:layout_width="150dp"
+        android:layout_height="47dp"
+        android:background="@color/purple_700"
+        android:text="采样频率"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.466" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

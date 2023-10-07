@@ -66,7 +66,8 @@ public class MapViewModel extends ViewModel {
     private static MapViewModel singleton = null;
     private Layer droppedMarkerLayer;
     private ImageView hoveringMarker;
-    private boolean isAdding = false;
+    private boolean _isAdding = false;
+    private boolean _isMapInit = false;
 
     public MapViewModel() {
         if (singleton == null)
@@ -86,6 +87,7 @@ public class MapViewModel extends ViewModel {
             @Override
             public void onMapReady(MapboxMap mapboxMap) {
                 singleton.mapboxMap = mapboxMap;
+                _isMapInit = true;
                 mapboxMap.setStyle("https://www.spidersens.cn/mapstyle/basic.json", new Style.OnStyleLoaded() {
                     @Override
                     public void onStyleLoaded(@NonNull Style style) {
@@ -108,7 +110,7 @@ public class MapViewModel extends ViewModel {
                             @Override
                             public void onClick(View view){
                                 FloatingActionButton button = activity.findViewById(R.id.addPoint);
-                                if(isAdding){
+                                if(_isAdding){
                                     button.setImageResource(R.drawable.ic_button_new);
                                     hoveringMarker.setVisibility(View.INVISIBLE);
                                     final LatLng mapTargetLatLng = mapboxMap.getCameraPosition().target;
@@ -135,7 +137,7 @@ public class MapViewModel extends ViewModel {
                                     text = (TextView) activity.findViewById(R.id.gpsy);
                                     text.setText(sLat);
 
-                                    isAdding = false;
+                                    _isAdding = false;
                                 }
                                 else{
                                     button.setImageResource(R.drawable.ic_button_check);
@@ -144,7 +146,7 @@ public class MapViewModel extends ViewModel {
                                     if (droppedMarkerLayer != null) {
                                         droppedMarkerLayer.setProperties(visibility(NONE));
                                     }
-                                    isAdding = true;
+                                    _isAdding = true;
                                 }
 
                             }
@@ -226,6 +228,7 @@ public class MapViewModel extends ViewModel {
 
 
     public void addPointInMapSource(String id, ArrayList<Point> points){
+        if(_isMapInit == false) return;
         Feature multiPointFeature = Feature.fromGeometry(MultiPoint.fromLngLats(points));
         updateMapSourceById(id, FeatureCollection.fromFeature(multiPointFeature));
     }
